@@ -1,0 +1,3 @@
+[submodule "APE_JSF"]
+	path = APE_JSF
+	url = git://github.com/APE-Project/APE_JSF.git
