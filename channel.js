@@ -13,8 +13,7 @@ APE.IrcClient.Channel = new Class({
         this.dontclose = dontclose===true;
         this.name = name;
         this.irc = irc;
-        this.plop = rand_chars();
-		this.users = new Hash();
+	this.users = new Hash();
     },
     addUser: function(username, sort){
 		
@@ -134,15 +133,14 @@ APE.IrcClient.Channel = new Class({
     },
     makeMessageLine: function(message){
         /*
-        <div class="msg_line [error|info|user-left|notice|action|topic|highlight|ctcp]">
+        <li class="msg_line [error|info|user-left|notice|action|topic|highlight|ctcp]">
             <div class="msg_user">
                 <pre>[12:30]    Username</pre>
             </div>
             <pre class="msg_text">
                 Txt of the message
             </pre>
-        </div>
-        me "plop" chan name must begin with # or & and must not contains any of ' ' (sp
+        </li>
          */
 
 
@@ -156,7 +154,7 @@ APE.IrcClient.Channel = new Class({
             }
         }
 
-        var el_line = new Element('div', {
+        var el_line = new Element('li', {
             'class': 'msg_line'+(message.special?' '+message.special:'')
         });
 
