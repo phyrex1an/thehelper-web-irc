@@ -8,7 +8,7 @@
 
 var TCPSocket;
 APE.IrcClient = new Class({
-    Extends: APE.Client,
+//    Extends: APE.Client,
     Implements: Options,
     irc: null,
     connected: false,
@@ -29,10 +29,11 @@ APE.IrcClient = new Class({
     channels: new Hash(),
     initialize: function(options){
         this.currentChannel = this.options.systemChannel;     
+        this.irc = options.irc;
+        options.irc = null;
         this.setOptions(options);
         this.root = this.options.root;
         this.joinVirtualChannel(this.options.systemChannel);
-        
     },
     joinVirtualChannel: function(chan, irc, buildTabs, doNotClose){
         this.setChannel(chan, new APE.IrcClient.Channel(chan, irc, doNotClose));
@@ -44,10 +45,6 @@ APE.IrcClient = new Class({
         if(!this.hasChannel(user)){
             this.joinVirtualChannel(user, this.irc, true, true);
         }
-    },
-    complete: function(){
-        this.core.start({name:"IrcChat"+Math.round(Math.random()*1000)});
-        this.onRaw('login', this.initPlayground);
     },
     initPlayground: function(){
         this.els.loginform = this.root.getElement('.login');
@@ -61,27 +58,6 @@ APE.IrcClient = new Class({
         
         //Adding special events
         this.els.input.addEvent('keydown', this.sendKey.bindWithEvent(this));
-        
-        //TCPSocket implementation
-        TCPSocket = this.core.TCPSocket;
-        
-        //IRC events
-        this.irc = new IRCClient();
-        this.irc.onopen  = this.onopen.bind(this);
-        this.irc.onclose = this.onclose.bind(this);
-        this.irc.onTOPIC = this.onTOPIC.bind(this);
-        this.irc.onNICK = this.onNICK.bind(this);
-        this.irc.onJOIN = this.onJOIN.bind(this);
-        this.irc.onQUIT = this.onQUIT.bind(this);
-        this.irc.onPART = this.onPART.bind(this);
-        this.irc.onACTION = this.onACTION.bind(this);
-        this.irc.onCTCP  = this.onCTCP.bind(this);
-        this.irc.onNOTICE  = this.onNOTICE.bind(this);
-        this.irc.onPRIVMSG = this.onPRIVMSG.bind(this);
-        this.irc.onMODE = this.onMODE.bind(this);
-        this.irc.onERROR = this.onerror.bind(this);
-        this.irc.onerror = this.onerror.bind(this);
-        this.irc.onresponse = this.onresponse.bind(this);
     },
     changeMyNick: function(nick){
         this.nickname = nick;
@@ -89,11 +65,7 @@ APE.IrcClient = new Class({
         $$('.show-nick').set('html', nick);
     },
     setNick: function(nickname){
-        if(!this.irc) return false;
-        nickname = this.cleanNick(nickname);
-        this.irc.connect(this.options.irc_server, this.options.irc_port);
-        this.changeMyNick(nickname);
-        return true;
+
     },
     /** CHANNELS ACCESSORS */
     getChannel: function(key){
@@ -121,7 +93,7 @@ APE.IrcClient = new Class({
             this.irc.nick(this.nickname);
         }
     },
-    onopen: function(){
+    onOpen: function(){
         
         this.connected = true;
         this.connect();
@@ -131,10 +103,10 @@ APE.IrcClient = new Class({
           }.bind(this));
         */
     },
-    onclose: function(){
+    onClose: function(){
         
     },
-    onerror: function(cmd){
+    onError: function(cmd){
         if(cmd.args[0] == "Closing Link: 127.0.0.1 (Connection Timed Out)"){
             this.showInfo('Error occured, reconnecting...', 'error');
             this.irc.connect(this.options.irc_server, this.options.irc_port);
@@ -165,7 +137,7 @@ APE.IrcClient = new Class({
             this.showInfo(this.sanitize(cmd.args.pop()), 'error');
         }
     },
-    onresponse: function(cmd){
+    onResponse: function(cmd){
         var responseCode = parseInt(cmd.type);
         if(responseCode==372){
             this.addMessage(this.options.systemChannel, this.options.systemUser, cmd.args[1].substr(2), 'info');

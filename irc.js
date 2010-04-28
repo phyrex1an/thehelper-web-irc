@@ -27,140 +27,180 @@
  * ©2008 The Orbited Project
  */
 
-// TODO DRY this by creating a common logging infrastructure (this is also on stomp.js)
-IRC_DEBUG = false;
 
-if (IRC_DEBUG && typeof(Orbited)) {
-    var getIrcLogger = function(name) {
-        var logger = Orbited.getLogger(name);
-        if (!("dir" in logger)) {
-            logger.dir = function() {};
+/*
+  Naming conventions:
+  on* : Event. Reactions on server -> client traffic
+  onDo* : Event. Reactions on client actions (that might be client -> server actions)
+*/
+
+IRCHandler = function() {
+    this.handlers = [];
+};
+IRCHandler.prototype = new Object();
+IRCHandler.prototype.registerEventHandler = function(handler) {
+    this.handlers.push(handler);
+};
+IRCHandler.prototype.sendEvent = function(e) {
+    console.log("Event: %o", e);
+    var eventCallback = "on" + e.identifier;
+    for (var i=this.handlers.length-1; i>=0; i--) {
+        if (typeof this.handlers[i][eventCallback] == "function") {
+            this.handlers[i][eventCallback](e);
         }
-        return logger;
     }
-}
-else if (IRC_DEBUG && typeof(console)) {
-    var getIrcLogger = function(name) {
-        return {
-            debug: function() {
-                var args = Array.prototype.slice.call(arguments);
-                args.unshift(name, ": ");
-                console.debug.apply(console, args);
-            },
-            dir: function() {
-                console.debug(name, ":");
-                console.dir.apply(console, arguments);
-            }
+};
+IRCHandler.prototype.removeEventHandler = function(handler) {
+
+};
+
+
+IRCClient = function(handler) {
+    this.handler = handler;
+    this.handler.registerEventHandler(this);
+
+    this.connection = null;
+    this.buffer = "";
+    this.ENDL = "\r\n";
+    this.connect = function(hostname, port, socket) {
+        this.connection = socket;
+        var self = this;
+        this.connection.onopen =  function() {
+            self.handler.sendEvent({'identifier':'Open'});
         };
-    };
-}
-else {
-    var getIrcLogger = function(name) {
-        return {
-            debug: function() {},
-            dir: function() {}
+        this.connection.onclose = function(code) {
+            self.handler.sendEvent({'identifier':'Close'});
         };
-    };
-}
-
-IRCClient = function() {
-    var log = getIrcLogger("IRCClient");
-    var self = this
-    var conn = null
-    var buffer = ""
-    var ENDL = "\r\n"
-
-    self.onopen = function() {};
-    self.onconnect = function() {}      // Do nothing in default callbacks
-    self.onclose = function() {}
-    self.onerror = function(command) {}
-    self.onresponse = function(command) {}     // used for numerical replies
-
-    self.connect = function(hostname, port) {
-        log.debug("connect");
-        conn = self._createTransport();
-        conn.onopen = conn_opened
-        conn.onclose = conn_closed
-        conn.onread = conn_read
-        conn.open(hostname, port)
+        this.connection.onread = function(data) {
+            self.buffer += data;
+            self.parse_buffer();
+        };
+        this.connection.open(hostname, port);
         // TODO set onerror.
-    }
-    self._createTransport = function() {
+    };
+    this._createTransport = function() {
         return new TCPSocket();
     };
-    self.close = function(code) {
-        log.debug("close: "+code);
-        conn.close();
-        conn.onopen = null;
-        conn.onclose = null;
-        conn.onread = null;
-        self.onclose(code);
+    this.onDoClose = function(e) {
+        this.connection.close();
+        this.connection.onopen = null;
+        this.connection.onclose = null;
+        this.connection.onread = null;
     }
-    self.ident = function(nickname, modes, real_name) {
-        send("USER", nickname + " " + modes + " :" + real_name)
-    }
-    self.nick = function(nickname) {
-        send("NICK", nickname)
-    }
-    self.join = function(channel) {
-        send("JOIN", channel)
-    }
-    self.names = function(channel) {
-        send("NAMES", channel)
-    }
-    self.ctcp = function(to, cmd, rep) {
-        if(!rep)
-            this.privmsg(to, '\01'+cmd+'\01');
-        else
-            this.notice(to, '\01'+cmd+'\01');
-    }
-    self.part = function(channel, reason) {
-        send("PART", channel + " :" + reason)
-    }
-    self.quit = function(reason) {
-        var reason = reason || "leaving";
-        send("QUIT", ":" + reason)
-        conn.close()
-    }
-    self.reset = function() {
-        conn.reset();
-    }
-    self.action = function(destination, message) {
-        send('PRIVMSG', destination + ' :\01ACTION ' + message + '\01')
-    }
-    self.notice = function(destination, message) {
-        send('NOTICE', destination + ' :'+message)
-    }
-    self.privmsg = function(destination, message) {
-        send('PRIVMSG', destination + ' :' + message)
-    }
+    this.onDoSend = function(e) {
+        this.handler.sendEvent({
+            'identifier' : 'DoSendRaw',
+            'payload'    : e.type + " " + e.payload + this.ENDL
+        });
+    };
 
-    // Socket Callbacks
-    var conn_opened = function() {
-        self.onopen()
+    this.onDoSendRaw = function(e) {
+        this.connection.send(e.payload);
+    };
+
+    this.onDoIdent = function(e) {
+        this.handler.sendEvent({
+            'identifier':'DoSend',
+            'type':'USER',
+            'payload':e.nickname + " " + e.modes + " :" + e.realname
+        });
+    };
+
+    this.onDoPass = function(e) {
+        this.handler.sendEvent({
+            'identifier' : 'DoSend',
+            'type' : 'PASS',
+            'payload' : e.password
+        });
+    };
+
+    this.onDoChangeNick = function(e) {
+        this.handler.sendEvent({
+            'identifier':'DoSend',
+            'type':'NICK',
+            'payload':e.nickname
+        });
+    };
+    this.onDoJoin = function(e) {
+        this.handler.sendEvent({
+            'identifier':'DoSend',
+            'type':'JOIN',
+            'payload':e.channel
+        });        
+    };
+
+    this.onDoNames = function(e) {
+        this.handler.sendEvent({
+            'identifier':'DoSend',
+            'type':'NAMES',
+            'payload': e.channel
+        });
+    };
+    this.onDoCTCP =  function(e) {
+        var identifier = e.rep ? 'DoNotice' : 'DoPrivMsg';
+        this.handler.sendEvent({
+            'identifier' : identifier,
+            'destination' : e.destination,
+            'message': '\01'+e.command+'\01'
+        });
+    };
+    this.onDoPart = function(e) {
+        this.handler.sendEvent({
+            'identifier' : 'DoSend',
+            'type' : 'PART',
+            'payload': e.channel + " :" + e.reason
+        });
+    };
+    this.onDoQuit = function(e) {
+        this.handler.sendEvent({
+            'identifier':'DoSend',
+            'type':'QUIT',
+            'payload': ":" + e.reason
+        });
+        this.connection.close();
+    };
+    this.onDoReset = function(e) {
+        this.connection.reset();
     }
-    var conn_closed = function(code) {
-        self.onclose(code)
-    }
-    var conn_read = function(data) {
-        log.debug("data:");
-        log.debug(data);
-        buffer += data
-        parse_buffer()
-    }
+    this.onDoAction = function(e) {
+        this.handler.sendEvent({
+            'identifier':'DoPrivMsg',
+            'destination':e.destination,
+            'message':'\01ACTION ' + e.message + '\01'
+        });
+    };
+    this.onDoNotice = function(e) {
+        this.handler.sendEvent({
+            'identifier':'DoSend',
+            'type':'NOTICE',
+            'payload':e.destination + ' :' + e.message
+        });
+    };
+    this.onDoPrivMsg = function(e) {
+        this.handler.sendEvent({
+            'identifier':'DoSend',
+            'type':'PRIVMSG',
+            'payload':e.destination + ' :' + e.message
+        });
+    };
+    this.onDoPong = function(e) {
+        this.handler.sendEvent({
+            'identifier':'DoSend',
+            'type':'PONG',
+            'payload':':' + e.code
+        });
+    };
+
 
     // Internal Functions
-    var send = function(type, payload) {
-        log.debug("send: " + payload);
-        conn.send(type + " " + payload + ENDL);
-    };
-    var parse_buffer= function() {
-        var commands = buffer.split(ENDL);
-        buffer = commands[commands.length-1];
+
+    this.parse_buffer = function() {
+        var commands = this.buffer.split(this.ENDL);
+        this.buffer = commands[commands.length-1];
         for (var i = 0, l = commands.length - 1; i < l; ++i) {
             var line = commands[i];
             if (line.length > 0)
-                dispatch(line);
+                this.handler.sendEvent({'identifier':'Raw','payload':line});
         }
     };
     var parse_command = function(s) {
@@ -189,30 +229,33 @@ IRCClient = function() {
             type: args.shift(),
             args: args
         };
-        log.debug("command:");
-        log.dir(command);
         return command;
     };
-    var dispatch = function(line) {
-        
-		
-		command = parse_command(line);
-        
-		
-		//console.log('COMMAND',command.type);
 
-		if (command.type == "PING") {
-            send("PONG", ":" + command.args)
-        }
-        
-		
-		if (!isNaN(parseInt(command.type))) {
+    this.onRaw = function(e) {
+	var command = parse_command(e.payload);
+	if (!isNaN(parseInt(command.type))) {
             var error_code = parseInt(command.type)
-            if (error_code > 400)
-                return self.onerror(command)
-            else
-                return self.onresponse(command)
+            if (error_code > 400) {
+                this.handler.sendEvent({
+                    'identifier' : 'Error',
+                    'args' : command.args,
+                    'type' : command.type
+                });
+            } else {
+                this.handler.sendEvent({
+                    'identifier' : 'Response',
+                    'type' : command.type,
+                    'args' : command.args
+                });
+            }
         }
+        this.handler.sendEvent({
+            'identifier' : command.type,
+            'prefix' : command.prefix,
+            'args' : command.args
+        });
+
         if (command.type == "PRIVMSG") {
             msg = command.args[1]
             if (msg.charCodeAt(0) == 1 && msg.charCodeAt(msg.length-1) == 1) {
@@ -224,21 +267,105 @@ IRCClient = function() {
                 else {
                     command.type = 'CTCP'
                 }
-
+                
                 for (var i = 0; i < newargs.length; ++i) {
                     args.push(newargs[i])
                 }
                 command.args = args
             }
         }
-        if (typeof(self["on" + command.type]) == "function") {
-            // XXX the user is able to define unknown command handlers,
-            //     but cannot send any arbitrary command
-            self["on" + command.type](command);
-        } else {
-            log.debug("unhandled command received: ", command.type);
+    };
+
+    this.onPRIVMSG = function(e) {
+        var msg = e.args[1]
+        if (msg.charCodeAt(0) == 1 && msg.charCodeAt(msg.length-1) == 1) {
+            // It's a special command.
+            var args = [command.args[0]]
+            var newargs = msg.slice(1, msg.length - 1).split(' ')
+            var type = null;
+            if (newargs[0] == 'ACTION') {
+                type = newargs.shift()
+            }
+            else {
+                type = 'CTCP'
+            }
+            
+            for (var i = 0; i < newargs.length; ++i) {
+                args.push(newargs[i])
+            }
+            this.handler.sendEvent({
+                'identifier' : type,
+                'prefix' : e.prefix,
+                'args' : args
+            });
         }
+    };
+
+    // Helper functions
+    this.ident = function(nickname, flags, realname) {
+        this.handler.sendEvent({
+            'identifier' : 'DoIdent',
+            'nickname' : nickname,
+            'modes' : flags,
+            'realname' : realname
+        });
+    };
+
+    this.nick = function(nick) {
+        this.handler.sendEvent({
+            'identifier' : 'DoChangeNick',
+            'nickname': nick
+        });
+    };
+
+    this.ctcp = function(target, message, rep) {
+        this.handler.sendEvent({
+            'identifier' : 'DoCTCP',
+            'destination' : target,
+            'command' : command,
+            'rep' : rep
+        });
+    };
+
+    this.action = function(destination, message) {
+        this.handler.sendEvent({
+            'identifier' : 'DoAction',
+            'destination' : destination,
+            'message' : message
+        });
+    };
+
+    this.part = function(channel, reason) {
+        this.handler.sendEvent({
+            'identifier' : 'DoPart',
+            'channel' : channel,
+            'reason' : reason            
+        });
+    };
+
+    this.quit = function(reason) {
+        this.handler.sendEvent({
+            'identifier' : 'DoQuit',
+            'reason' : reason
+        });
+    };
+
+    this.join = function(channel) {
+        this.handler.sendEvent({
+            'identifier' : 'DoJoin',
+            'channel' : channel
+        });
     };
 };
 
-
+IRCPingClient = function(handler) {
+    this.handler = handler;
+    this.handler.registerEventHandler(this);
+}
+IRCPingClient.prototype = new Object();
+IRCPingClient.prototype.onPING = function(e) {
+    this.handler.sendEvent({
+        'identifier':'DoPong',
+        'code' :  e.args[0]
+    });
+};
