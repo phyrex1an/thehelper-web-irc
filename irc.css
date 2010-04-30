@@ -5,41 +5,7 @@
     position:relative;
     margin: 0 auto;
 }
-/** Login **/
-#ircchat .login{
-    display:none;
-    width: 400px;
-    height: 50px;
-    background: white;
-    z-index: 200;
-    border: solid 3px #235464;
-    border-radius: 6px;
-    -moz-border-radius:6px;
-    -webkit-border-radius: 6px;
-    padding: 40px 40px;
-    background: #a4c9d6;
-    text-align:center;
-}
-#ircchat .login label{
-    font-weight: bold;
-    color: #133d4b;
-    font-size: 1.25em;
-    margin-bottom: 20px;
-    margin-right:3px;
-}
-#ircchat .login label:after {
-    content: ':';
-}
-#ircchat .login input[type=text]{
-    width: 125px;
-}
-#ircchat .login input[type=submit]{
-    border: none;
-    background: none transparent;
-    color: #133d4b;
-    cursor: pointer;
-}
-/** Connected **/
+
 #ircchat .header{
     height: 34px;
 }
@@ -58,7 +24,7 @@
     background: transparent right top no-repeat url('./img/btnOff_right.png');
     margin:0 7px 4px 0;
 }
-#ircchat .header .tabs li a{
+#ircchat .header .tabs li a.close{
     display:block;
     height:29px;
     width: 29px;
@@ -66,7 +32,7 @@
     float: left;
     cursor: pointer;
 }
-#ircchat .header .tabs li span.link{
+#ircchat .header .tabs li a.link{
     display: block;
     height: 20px;
     background: top repeat-x url('./img/btnOff_middle.png');
@@ -75,30 +41,30 @@
     cursor: pointer;
     float:left;
 }
-#ircchat .header .tabs li a:hover{
+#ircchat .header .tabs li a.close:hover{
     background-position:bottom left;
 }
-#ircchat .header .tabs li.sys a{
+#ircchat .header .tabs li.sys a.close{
     width: 5px;
     cursor: default;
 }
-#ircchat .header .tabs li.sys span.link{
+#ircchat .header .tabs li.sys a.link{
     padding-left: 5px;
 }
-#ircchat .header .tabs li span.link:hover, #ircchat .header .tabs li.current span.link{
+#ircchat .header .tabs li a.link:hover, #ircchat .header .tabs li.current a.link{
     color: #235464;
 }
 #ircchat .header .tabs li.current{
     background-image:url('./img/btnOn_right.png');
 }
-#ircchat .header .tabs li.current a{
+#ircchat .header .tabs li.current a.close{
     background-image:url('./img/btnOn_left.png');
     cursor:pointer;
 }
-#ircchat .header .tabs li.sys.current a{
+#ircchat .header .tabs li.sys.current a.close{
     cursor: default;
 }
-#ircchat .header .tabs li.current span.link{
+#ircchat .header .tabs li.current a.link{
     background-image:url('./img/btnOn_middle.png');
     cursor: default;
 }
@@ -194,7 +160,7 @@
     width: 105px;
     text-align: center;
 }
-#ircchat .chat .input-zone button{
+#ircchat .chat .input-zone input[type=submit]{
     float:right;
     border: none;
     background:none transparent;
@@ -205,7 +171,7 @@
     font-size: 13px;
     cursor: pointer;
 }
-#ircchat .chat .input-zone input{
+#ircchat .chat .input-zone .input{
     float:right;
     border: solid 1px #a1a1a1;
     border-top-color: #909090;
