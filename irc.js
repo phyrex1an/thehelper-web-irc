@@ -81,111 +81,111 @@ IRCClient = function(handler) {
     this._createTransport = function() {
         return new TCPSocket();
     };
-    this.onDoClose = function(e) {
+    this.onSendClose = function(e) {
         this.connection.close();
         this.connection.onopen = null;
         this.connection.onclose = null;
         this.connection.onread = null;
     }
-    this.onDoSend = function(e) {
+    this.onSend = function(e) {
         this.handler.sendEvent({
-            'identifier' : 'DoSendRaw',
+            'identifier' : 'SendRaw',
             'payload'    : e.type + " " + e.payload + this.ENDL
         });
     };
 
-    this.onDoSendRaw = function(e) {
+    this.onSendRaw = function(e) {
         this.connection.send(e.payload);
     };
 
-    this.onDoIdent = function(e) {
+    this.onSendIdent = function(e) {
         this.handler.sendEvent({
-            'identifier':'DoSend',
+            'identifier':'Send',
             'type':'USER',
             'payload':e.nickname + " " + e.modes + " :" + e.realname
         });
     };
 
-    this.onDoPass = function(e) {
+    this.onSendPass = function(e) {
         this.handler.sendEvent({
-            'identifier' : 'DoSend',
+            'identifier' : 'Send',
             'type' : 'PASS',
             'payload' : e.password
         });
     };
 
-    this.onDoChangeNick = function(e) {
+    this.onSendChangeNick = function(e) {
         this.handler.sendEvent({
-            'identifier':'DoSend',
+            'identifier':'Send',
             'type':'NICK',
             'payload':e.nickname
         });
     };
-    this.onDoJoin = function(e) {
+    this.onSendJoin = function(e) {
         this.handler.sendEvent({
-            'identifier':'DoSend',
+            'identifier':'Send',
             'type':'JOIN',
             'payload':e.channel
         });        
     };
 
-    this.onDoNames = function(e) {
+    this.onSendNames = function(e) {
         this.handler.sendEvent({
-            'identifier':'DoSend',
+            'identifier':'Send',
             'type':'NAMES',
             'payload': e.channel
         });
     };
-    this.onDoCTCP =  function(e) {
-        var identifier = e.rep ? 'DoNotice' : 'DoPrivMsg';
+    this.onSendCTCP =  function(e) {
+        var identifier = e.rep ? 'SendNotice' : 'SendPrivMsg';
         this.handler.sendEvent({
             'identifier' : identifier,
             'destination' : e.destination,
             'message': '\01'+e.command+'\01'
         });
     };
-    this.onDoPart = function(e) {
+    this.onSendPart = function(e) {
         this.handler.sendEvent({
-            'identifier' : 'DoSend',
+            'identifier' : 'Send',
             'type' : 'PART',
             'payload': e.channel + " :" + e.reason
         });
     };
-    this.onDoQuit = function(e) {
+    this.onSendQuit = function(e) {
         this.handler.sendEvent({
-            'identifier':'DoSend',
+            'identifier':'Send',
             'type':'QUIT',
             'payload': ":" + e.reason
         });
         this.connection.close();
     };
-    this.onDoReset = function(e) {
+    this.onSendReset = function(e) {
         this.connection.reset();
     }
-    this.onDoAction = function(e) {
+    this.onSendAction = function(e) {
         this.handler.sendEvent({
-            'identifier':'DoPrivMsg',
+            'identifier':'SendPrivMsg',
             'destination':e.destination,
             'message':'\01ACTION ' + e.message + '\01'
         });
     };
-    this.onDoNotice = function(e) {
+    this.onSendNotice = function(e) {
         this.handler.sendEvent({
-            'identifier':'DoSend',
+            'identifier':'Send',
             'type':'NOTICE',
             'payload':e.destination + ' :' + e.message
         });
     };
-    this.onDoPrivMsg = function(e) {
+    this.onSendPrivMsg = function(e) {
         this.handler.sendEvent({
-            'identifier':'DoSend',
+            'identifier':'Send',
             'type':'PRIVMSG',
             'payload':e.destination + ' :' + e.message
         });
     };
-    this.onDoPong = function(e) {
+    this.onSendPong = function(e) {
         this.handler.sendEvent({
-            'identifier':'DoSend',
+            'identifier':'Send',
             'type':'PONG',
             'payload':':' + e.code
         });
@@ -200,7 +200,7 @@ IRCClient = function(handler) {
         for (var i = 0, l = commands.length - 1; i < l; ++i) {
             var line = commands[i];
             if (line.length > 0)
-                this.handler.sendEvent({'identifier':'Raw','payload':line});
+                this.handler.sendEvent({'identifier':'ReceiveRaw','payload':line});
         }
     };
     var parse_command = function(s) {
@@ -232,51 +232,32 @@ IRCClient = function(handler) {
         return command;
     };
 
-    this.onRaw = function(e) {
+    this.onReceiveRaw = function(e) {
 	var command = parse_command(e.payload);
 	if (!isNaN(parseInt(command.type))) {
             var error_code = parseInt(command.type)
             if (error_code > 400) {
                 this.handler.sendEvent({
-                    'identifier' : 'Error',
+                    'identifier' : 'ReceiveError',
                     'args' : command.args,
                     'type' : command.type
                 });
             } else {
                 this.handler.sendEvent({
-                    'identifier' : 'Response',
+                    'identifier' : 'ReceiveResponse',
                     'type' : command.type,
                     'args' : command.args
                 });
             }
         }
         this.handler.sendEvent({
-            'identifier' : command.type,
+            'identifier' : 'Receive' + command.type,
             'prefix' : command.prefix,
             'args' : command.args
         });
-
-        if (command.type == "PRIVMSG") {
-            msg = command.args[1]
-            if (msg.charCodeAt(0) == 1 && msg.charCodeAt(msg.length-1) == 1) {
-                var args = [command.args[0]]
-                var newargs = msg.slice(1, msg.length - 1).split(' ')
-                if (newargs[0] == 'ACTION') {
-                    command.type = newargs.shift()
-                }
-                else {
-                    command.type = 'CTCP'
-                }
-                
-                for (var i = 0; i < newargs.length; ++i) {
-                    args.push(newargs[i])
-                }
-                command.args = args
-            }
-        }
     };
 
-    this.onPRIVMSG = function(e) {
+    this.onReceivePRIVMSG = function(e) {
         var msg = e.args[1]
         if (msg.charCodeAt(0) == 1 && msg.charCodeAt(msg.length-1) == 1) {
             // It's a special command.
@@ -304,7 +285,7 @@ IRCClient = function(handler) {
     // Helper functions
     this.ident = function(nickname, flags, realname) {
         this.handler.sendEvent({
-            'identifier' : 'DoIdent',
+            'identifier' : 'SendIdent',
             'nickname' : nickname,
             'modes' : flags,
             'realname' : realname
@@ -313,14 +294,14 @@ IRCClient = function(handler) {
 
     this.nick = function(nick) {
         this.handler.sendEvent({
-            'identifier' : 'DoChangeNick',
+            'identifier' : 'SendChangeNick',
             'nickname': nick
         });
     };
 
     this.ctcp = function(target, message, rep) {
         this.handler.sendEvent({
-            'identifier' : 'DoCTCP',
+            'identifier' : 'SendCTCP',
             'destination' : target,
             'command' : command,
             'rep' : rep
@@ -329,7 +310,7 @@ IRCClient = function(handler) {
 
     this.action = function(destination, message) {
         this.handler.sendEvent({
-            'identifier' : 'DoAction',
+            'identifier' : 'SendAction',
             'destination' : destination,
             'message' : message
         });
@@ -337,7 +318,7 @@ IRCClient = function(handler) {
 
     this.part = function(channel, reason) {
         this.handler.sendEvent({
-            'identifier' : 'DoPart',
+            'identifier' : 'SendPart',
             'channel' : channel,
             'reason' : reason            
         });
@@ -345,14 +326,14 @@ IRCClient = function(handler) {
 
     this.quit = function(reason) {
         this.handler.sendEvent({
-            'identifier' : 'DoQuit',
+            'identifier' : 'SendQuit',
             'reason' : reason
         });
     };
 
     this.join = function(channel) {
         this.handler.sendEvent({
-            'identifier' : 'DoJoin',
+            'identifier' : 'SendJoin',
             'channel' : channel
         });
     };
@@ -363,9 +344,9 @@ IRCPingClient = function(handler) {
     this.handler.registerEventHandler(this);
 }
 IRCPingClient.prototype = new Object();
-IRCPingClient.prototype.onPING = function(e) {
+IRCPingClient.prototype.onReceivePING = function(e) {
     this.handler.sendEvent({
-        'identifier':'DoPong',
+        'identifier':'SendPong',
         'code' :  e.args[0]
     });
 };

@@ -24,7 +24,7 @@ THIrcUI.prototype.connectIrc = function(socket) {
 // When we have an open connection to the irc, probe user for login details
 THIrcUI.prototype.onOpen = function() {
     this.handler.sendEvent({
-        'identifier' : 'DoPass',
+        'identifier' : 'SendPass',
         'password'   : 'webchat'
     });
     if (!this.setNick(this.username)) {
@@ -46,7 +46,7 @@ THIrcUI.prototype._onSubmit = function(value) {
         this.password = value;
         new IrcNickserv(this.handler);
         this.handler.sendEvent({
-            'identifier' : 'DoNickservIdentify',
+            'identifier' : 'SendNickservIdentify',
             'password' : this.password
         });
         this.waitingForPassword = false;
@@ -56,27 +56,27 @@ THIrcUI.prototype._onSubmit = function(value) {
         
     }
 };
-THIrcUI.prototype.onNickservNotRegistered = function(e) {
+THIrcUI.prototype.onReceiveNickservNotRegistered = function(e) {
     if (e.nick == this.nickname) {
         this.handler.sendEvent({
-            'identifier' : 'DoNickservRegister',
+            'identifier' : 'SendNickservRegister',
             'nickname' : this.nickname,
             'domain'    : 'www.thehelper.net'
         });
     };
 };
-THIrcUI.prototype.onNickservPasswordAccepted = function(e) {
+THIrcUI.prototype.onReceiveNickservPasswordAccepted = function(e) {
     this.joinDefaultChannels();
     this.input.enable();
     this.input.text();
 };
-THIrcUI.prototype.onNOTICE = function(e) {
+THIrcUI.prototype.onReceiveNOTICE = function(e) {
     this.addSysMessage(e.args[1]);
 };
-THIrcUI.prototype.onError = function(e) {
+THIrcUI.prototype.onReceiveError = function(e) {
     this.addSysMessage(e.args[2]);
 };
-THIrcUI.prototype.onResponse = function(e) {
+THIrcUI.prototype.onReceiveResponse = function(e) {
     this.addSysMessage(e.args[1]);
 };
 THIrcUI.prototype.setNick = function (nickname) {
@@ -264,19 +264,19 @@ var IrcNickserv = function(handler) {
     this.handler.registerEventHandler(this);
 };
 IrcNickserv.prototype = new Object();
-IrcNickserv.prototype.onDoNickservIdentify = function(e) {
+IrcNickserv.prototype.onSendNickservIdentify = function(e) {
     this.handler.sendEvent({
-        'identifier' : 'DoPrivMsg',
+        'identifier' : 'SendPrivMsg',
         'destination' : this.nickserv,
         'message' : 'identify ' + e.password
     });
 };
-IrcNickserv.prototype.onNOTICE = function(e) {
+IrcNickserv.prototype.onReceiveNOTICE = function(e) {
     if (e.prefix == "NickServ!services@services.thehelper.net") {
 
         if (e.args[1] == "Your nick isn't registered.") {
             this.handler.sendEvent({
-                'identifier' : 'NickservNotRegistered',
+                'identifier' : 'ReceiveNickservNotRegistered',
                 'nick' : e.args[0]
             });
         } else if (e.args[1] == "This didn't work.") {
@@ -287,16 +287,16 @@ IrcNickserv.prototype.onNOTICE = function(e) {
             });
         } else if (e.args[1] == "Password accepted - you are now recognized." ) {
             this.handler.sendEvent({
-                'identifier' : 'NickservPasswordAccepted',
+                'identifier' : 'ReceiveNickservPasswordAccepted',
                 'nick' : e.args[0]
             });
         }
         
     }
 };
-IrcNickserv.prototype.onDoNickservRegister = function(e) {
+IrcNickserv.prototype.onSendNickservRegister = function(e) {
     this.handler.sendEvent({
-        'identifier' : 'DoPrivMsg',
+        'identifier' : 'SendPrivMsg',
         'destination' : this.nickserv,
         'message' : 'register ' + e.domain + ' ' + e.nickname
     });
