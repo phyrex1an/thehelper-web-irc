@@ -1,15 +1,14 @@
 var THIrcUI = function(handler, username, root) {
     this.handler = handler;
+    this.self = IrcChannelUser.fromName(username);
     this.username = username;
     this.root = root;
     this.waitingForPassword = false;
-    this.sysName = '*system*';
-    this.sysUser = '***System***';
-    this.currentChannel = this.sysName;
     this.defaultChannels = ['#thehelper'];
-    this.channelList = new THIrcChannelList();
-    this.channelList.add(new THIrcChannelUI(this.sysName));
-    this.channelList.setCurrent(this.sysName);
+    this.channelList = new IrcChatList();
+    this.systemChannel = new IrcVirtualChannel('*system*', IrcChannelUser.fromName('***System***'))
+    this.channelList.add(this.systemChannel);
+    this.channelList.setCurrent(this.systemChannel);
     this.handler.registerEventHandler(this);
     this.paintChat();
 };
@@ -45,6 +44,7 @@ THIrcUI.prototype._onSubmit = function(value) {
     if (this.waitingForPassword == true) {
         this.password = value;
         new IrcNickserv(this.handler);
+        new IrcChannelManager(this.handler);
         this.handler.sendEvent({
             'identifier' : 'SendNickservIdentify',
             'password' : this.password
@@ -79,6 +79,31 @@ THIrcUI.prototype.onReceiveError = function(e) {
 THIrcUI.prototype.onReceiveResponse = function(e) {
     this.addSysMessage(e.args[1]);
 };
+THIrcUI.prototype.onReceiveJOIN = function(e) {
+    var channel = e.args[0];
+    this.channelList.add(new IrcChannel(channel));
+};
+THIrcUI.prototype.onReceivePRIVMSG = function(e) {
+    var channelName = e.args[0];
+    var msg = e.args[1];
+    var from = e.prefix;
+    channelName = this.self.name() == channelName ? from : channelName;
+    var channel = this.channelList.getChannel(channelName);
+    var fromUser = IrcChannelUser.fromHostString(from)
+    if (channel == null) {
+        channel = new IrcPrivateChat(fromUser);
+        this.add(channel);
+    };
+    channel.addMessage(new IrcMessage(fromUser, msg));
+};
+THIrcUI.prototype.onReceive353 = function(e) {
+    var channelName = e.args[2];
+    var users = e.args[3].split(" ");
+    var channel = this.channelList.getChannel(channelName);
+    for (var i in users) {
+        channel.join(IrcChannelUser.fromName(users[i]));
+    };
+};
 THIrcUI.prototype.setNick = function (nickname) {
     nickname = this.cleanNick(nickname);
     this.nickname = nickname;
@@ -96,27 +121,14 @@ THIrcUI.prototype.cleanNick = function(nick){
     return ret;
 };
 THIrcUI.prototype.paintChat = function() {
-    var html = (<><![CDATA[
-            <div class="header">
-                <div class="server">IRC @ thehelper</div>
-            </div>
-            <div class="chat">
-            </div>
-            <div class="show-nick"></div>
-            </div>]]></>).toString();
-    this.root.html(html);
-    this.header = $('.header', this.root);
-    this.chat = $('.chat', this.root);
-    $('.header', this.root).append(this.channelList.get());
     this.input = new THIrcInput();
     this.input.disable();
     var self = this;
     this.input.addSendListener(function(input) {
         self._onSubmit(input);
     });
-
-    $('.chat', this.root)
-        .append(this.channelList.getCurrent().get())
+    this.root
+        .append(this.channelList.view())
         .append(this.input.get());
 };
 THIrcUI.prototype.joinDefaultChannels = function() {
@@ -126,10 +138,9 @@ THIrcUI.prototype.joinDefaultChannels = function() {
 };
 THIrcUI.prototype.joinChannel = function(channel) {
     this.irc.join(channel);
-    this.channelList.add(new THIrcChannelUI(channel));
 };
 THIrcUI.prototype.addSysMessage = function(message) {
-    this.channelList.getCurrent().addMessage(this.sysUser, message);
+    this.systemChannel.addLogMessage(message);
 }
 // Called when we're setting up a connection to the ape server
 THIrcUI.prototype.connecting = function() {

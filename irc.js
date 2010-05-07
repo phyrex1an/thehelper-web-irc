@@ -121,13 +121,6 @@ IRCClient = function(handler) {
             'payload':e.nickname
         });
     };
-    this.onSendJoin = function(e) {
-        this.handler.sendEvent({
-            'identifier':'Send',
-            'type':'JOIN',
-            'payload':e.channel
-        });        
-    };
 
     this.onSendNames = function(e) {
         this.handler.sendEvent({
@@ -188,6 +181,13 @@ IRCClient = function(handler) {
             'identifier':'Send',
             'type':'PONG',
             'payload':':' + e.code
+        });
+    };
+    this.onSendJoin = function(e) {
+        this.handler.sendEvent({
+            'identifier':'Send',
+            'type':'JOIN',
+            'payload':e.channel
         });
     };
 
@@ -404,4 +404,241 @@ IrcNickserv.prototype.onSendNickservRegister = function(e) {
         'destination' : this.nickserv,
         'message' : 'register ' + e.domain + ' ' + e.nickname
     });
+};
+
+
+// ChannelManager (manages traffic to all channels and private chats...)
+// Listens to:
+//    SendJoin
+//    ReceiveJoin
+// Generates:
+//    Send
+// Methods:
+//    addMessageListener(l, c)  -- l listener object, c channel to listen on
+//    removeMessagelListener(l, c)
+//    addChannelListener(l)
+//    removeChannelListener(l)
+var IrcChannelManager = function(handler) {
+    this.handler = handler;
+    this.channels = {};
+    this.handler.registerEventHandler(this);
+};
+IrcChannelManager.prototype.addMessageListener = function(l, c) {
+
+};
+IrcChannelManager.prototype.removeMessageListener = function(l, c) {
+
+};
+IrcChannelManager.prototype.addChannelListener = function(l) {
+
+};
+IrcChannelManager.prototype.removeChannelListener = function(l) {
+
+};
+
+IrcChannelManager.prototype.onReceiveJOIN = function(e) {
+    var joined = e.args[0];
+    this.channels[joined] = new IrcChannel(joined);
+};
+IrcChannelManager.prototype.onSendPrivMsg = function(e) {
+    if (this.channels[e.destination]) {
+        this.messages[channel].sendMessage(e.message);
+    }
+};
+
+
+var IrcChatList = function() {
+    this.html = $('<ul class="channels">'); 
+    this.chats = [];
+};
+IrcChatList.prototype.add = function(chat) {
+    // TODO: Check if chat is in list
+    this.chats.push(chat);
+    this.html.append(chat.view());
+};
+IrcChatList.prototype.remove = function(chat) {
+    for (var i in this.chats) {
+        if (this.chats[i].name() == chat.name()) {
+            this.chats.splice(i,i);
+            break;
+        };
+    };
+};
+IrcChatList.prototype.setCurrent = function(chat) {
+    // TODO: Check if chat is in list
+    if (this.current) this.current.removeCurrent();
+    this.current = chat;
+    chat.addCurrent();
+};
+IrcChatList.prototype.getChannel = function(channelName) {
+    for (var i in this.chats) {
+        if (this.chats[i].name() == channelName) {
+            return this.chats[i];
+        };
+    };
+    return null;
+};
+IrcChatList.prototype.addMessage = function(channelName, msg, from) {
+    var channel = this.getChannel(channelName);
+    if (channel == null) {
+
+    };
+    channel.addMessage(msg, from);
+};
+IrcChatList.prototype.view = function() {
+    return this.html;
+};
+
+var IrcMessageList = function() {
+    this.html = $('<ol class="messages">');
+    this.messages = [];
+};
+IrcMessageList.prototype.add = function(message) {
+    this.messages.push(message);
+    this.html.append(message.view());
+};
+IrcMessageList.prototype.view = function() {
+    return this.html;
+};
+
+var IrcUserList = function() {
+    this.html = $('<ul class="users">');
+    this.users = [];
+};
+IrcUserList.prototype.add = function(user) {
+    this.users.push(user);
+    this.html.append(user.view());
+};
+IrcUserList.prototype.remove = function(user) {
+    for (var i in this.users) {
+        if (this.users[i].equals(user)) {
+            this.users.splice(i,i);
+            break;
+        };
+    };
+};
+IrcUserList.prototype.get = function(userName) {
+    for (var i in this.users) {
+        if (this.users[i].name() == userName) {
+            return this.users[i];
+        };
+    };
+    return null;
+};
+IrcUserList.prototype.view = function() {
+    return this.html;
+};
+
+var IrcChat = function() {
+};
+IrcChat.prototype.addMessage = function(message) {
+    this.messages.add(message);
+};
+IrcChat.prototype.view = function() {
+    return this.html;
+};
+IrcChat.prototype.addCurrent = function() {
+    this.html.addClass('current');
+};
+IrcChat.prototype.removeCurrent = function() {
+    this.html.removeClass('current');
+};
+
+var IrcPrivateChat = function(withUser) {
+    this.html = $('<li>');
+    this.messages = new IrcMessageList();
+    this.user = withUser;
+    this.html.append(this.user.viewTitle());
+    this.html.append(this.messages.view());
+};
+IrcPrivateChat.prototype = new IrcChat();
+IrcPrivateChat.getUser = function(u) {
+    if (this.user.equals(u))
+        return this.user;
+    throw new Error("Unknown user in private chat");
+};
+IrcPrivateChat.prototype.name = function() {
+    return this.user.name();
+};
+
+var IrcChannel = function(name) {
+    this.html = $('<li>');
+    this.messages = new IrcMessageList();
+    this._name = name;
+    this.users = new IrcUserList();
+    this.html.append($('<h2>').text(this._name));
+    this.html.append(this.messages.view());
+    this.html.append(this.users.view());
+};
+IrcChannel.prototype = new IrcChat();
+IrcChannel.prototype.name = function() {
+    return this._name;
+};
+IrcChannel.prototype.join = function(user) {
+    this.users.add(user);
+};
+IrcChannel.prototype.part = function(user) {
+    this.users.remove(user);
+};
+IrcChannel.prototype.getUser = function(userName) {
+    return this.users.get(userName);
+};
+
+var IrcVirtualChannel = function(name, messageUser) {
+    this.html = $('<li>');
+    this.messages = new IrcMessageList();
+    this._name = name;
+    this.messageUser = messageUser;
+    this.html.append($('<h2>').text(this._name));
+    this.html.append(this.messages.view());
+};
+IrcVirtualChannel.prototype = new IrcChat();
+IrcVirtualChannel.prototype.name = function() {
+    return this._name;
+};
+IrcVirtualChannel.prototype.addLogMessage = function(messageContent) {
+    this.addMessage(new IrcMessage(this.messageUser, messageContent));
+};
+
+
+var IrcMessage = function(from, content) {
+    this.html = $('<li>');
+    this.from = from;
+    this.content = content;
+    this.html.append($('<span>').text(this.from.name()));
+    this.html.append($('<span>').text(this.content));
+};
+IrcMessage.prototype.view = function() {
+    return this.html;
+};
+
+var IrcChannelUser = function(name) {
+    this.html = $('<li>');
+    this._name = name;
+    this.html.text(this._name);
+};
+IrcChannelUser.prototype.equals = function(user) {
+    return this._name == user.name();
+};
+IrcChannelUser.prototype.name = function() {
+    return this._name;
+};
+IrcChannelUser.prototype.view = function() {
+    return this.html;
+};
+
+IrcChannelUser.fromName = function(name) {
+    var special_list = ['%', '@', '+'];
+    var fst = name.charAt(0);
+    for (var i in special_list) {
+        if (fst == special_list[i]) {
+            name = name.substring(1);
+            break;
+        };
+    };
+    return new IrcChannelUser(name);
+};
+IrcChannelUser.fromHostString = function(name) {
+    var host_split = name.split("!");
+    return new IrcChannelUser(host_split[0]);
 };
