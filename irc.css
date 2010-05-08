@@ -1,229 +1,71 @@
 #ircchat{
-    width: 796px;
-    height: 482px;
+    width: 800px;
+    height: 500px;
     margin-bottom: 10px;
     position:relative;
     margin: 0 auto;
+    border: 1px solid black;
 }
 
-#ircchat .header{
-    height: 34px;
+#ircchat .channels {
+    margin:0;
+    padding:0;
 }
-#ircchat .header .server{
+
+#ircchat .channels .channel {
     float: left;
-    margin: 9px 12px 0 1px;
+    list-style:none;
 }
-#ircchat .header .tabs {
-    list-style-type:none;
+
+/* Hide all elements in the channel list */
+#ircchat .channels .channel > * {
+    display:none;
 }
-#ircchat .header .tabs li{
-    width: auto;
-    float:left;
-    height: 29px;
-    padding-right: 3px;
-    background: transparent right top no-repeat url('./img/btnOff_right.png');
-    margin:0 7px 4px 0;
-}
-#ircchat .header .tabs li a.close{
+/* and the current tab */
+#ircchat .channels .channel.current > * {
     display:block;
-    height:29px;
-    width: 29px;
-    background: left top no-repeat url('./img/btnOff_left.png');
-    float: left;
-    cursor: pointer;
 }
-#ircchat .header .tabs li a.link{
-    display: block;
+/* except the titles */
+#ircchat .channels .channel .title {
+    display:inline;
     height: 20px;
-    background: top repeat-x url('./img/btnOff_middle.png');
-    padding: 9px 9px 0 0;
-    color: #9a9b9c;
-    cursor: pointer;
-    float:left;
-}
-#ircchat .header .tabs li a.close:hover{
-    background-position:bottom left;
-}
-#ircchat .header .tabs li.sys a.close{
-    width: 5px;
-    cursor: default;
-}
-#ircchat .header .tabs li.sys a.link{
-    padding-left: 5px;
-}
-#ircchat .header .tabs li a.link:hover, #ircchat .header .tabs li.current a.link{
-    color: #235464;
-}
-#ircchat .header .tabs li.current{
-    background-image:url('./img/btnOn_right.png');
-}
-#ircchat .header .tabs li.current a.close{
-    background-image:url('./img/btnOn_left.png');
-    cursor:pointer;
-}
-#ircchat .header .tabs li.sys.current a.close{
-    cursor: default;
-}
-#ircchat .header .tabs li.current a.link{
-    background-image:url('./img/btnOn_middle.png');
-    cursor: default;
-}
-#ircchat .chat{
-    width: 796px;
-    height: 446px;
-    border: solid 2px #839093;
-    clear: left;
-}
-#ircchat .chat .history{
+    padding:0 5px;
     margin:0;
-    padding:0;
-    float:left;
-    width: 620px;
-    height: 398px;
-    overflow-y: scroll;
-    overflow-x: hidden;
-    z-index: 101;
-    font-family: "Lucida Console ", monospace !important;
-    font-size: 10px;
-}
-/** Messages lines */
-#ircchat .chat .history .msg_line{
-    clear: both;
-}
-#ircchat .chat .texte-zone .texte .msg_line pre{
-    line-height: 13px !important;
-}
-#ircchat .chat .texte-zone .texte .msg_line .msg_user{
-    float:left;
-}
-#ircchat .chat .texte-zone .texte .msg_line .msg_text{
-    padding-left: 4px;
-    overflow: hidden;
-    float: left;
-    /*For a cool effect
-    float: right;
-    /**/
-
-}
-#ircchat .chat .user-info{
-    width: 170px;
-    height: 398px;
-    border-left: solid 1px #839095;
-    float:left;
+    border: 1px solid black;
 }
 
-#ircchat .chat .user-info .user-header{
-    height: 20px;
-    border-bottom: solid 1px #839095;
-    background-color: #133d4b;
-    text-align:center;
-    color: #b9c5c9;
-    padding-top: 5px;
-}
-#ircchat .chat .user-info .user-list{
-    margin:0;
-    padding:0;
-    overflow-y: scroll;
-    height: 372px;
-    background: top left url('./img/list_bg.png');
-}
-#ircchat .chat .user-info .user-list{
+#ircchat .channels .channel .messages, #ircchat .channels .channel .users {
+    height: 460px;
     overflow-y: auto;
-    background: top left url('./img/list_bg.png');
-}
-#ircchat .chat .user-info .user-list .user-item{
-    display: block;
-    height: 15px;
-    color: #FFF;
-    padding: 5px 0 3px 27px;
-    background: left top no-repeat;
-    overflow: hidden;
-}
-#ircchat .chat .user-info .user-list a:hover{
-    background-color: #336474;
-}
-#ircchat .chat .user-info .user-list .user-item.operator{
-    background-image:url('./img/green_bullet.png');
-}
-#ircchat .chat .user-info .user-list .user-item.voice{
-    background-image:url('./img/orange_bullet.png');
-}
-#ircchat .chat .input-zone{
-    clear: left;
-    height: 48px;
-    background: repeat-x left top url('./img/send_bg.png');
-}
-#ircchat .chat .input-zone .show-nick{
-    float:left;
-    margin: 20px 0 0 8px;
-    color: #5d5e5e;
-    width: 105px;
-    text-align: center;
-}
-#ircchat .chat .input-zone input[type=submit]{
-    float:right;
-    border: none;
-    background:none transparent;
-    margin: 10px 20px 0 20px;
-    padding: 0;
-    height: 29px;
-    color: #133d4b;
-    font-size: 13px;
-    cursor: pointer;
-}
-#ircchat .chat .input-zone .input{
-    float:right;
-    border: solid 1px #a1a1a1;
-    border-top-color: #909090;
-    border-bottom-color: #a9a9a9;
-    margin-top: 10px;
-    padding: 0;
-    position: static;
-    height: 19px;
-    background: top repeat-x url('./img/input_bg.png') white;
-    padding: 5px 4px;
-    width: 601px;
+    margin:0;
+    padding:0;
+    position: absolute;
 }
 
-/** Special Messages */
-#ircchat .highlight .msg_text{
-    color: red;
-}
-#ircchat .info .msg_text{
-    color: gray;
-}
-#ircchat .topic .msg_text{
-    color: #B037B0;
-}
-#ircchat .user-left .msg_text{
-    color: #F44;
-}
-#ircchat .user-join .msg_text{
-    color: #080
-}
-#ircchat .notice .msg_text{
-    font-style: italic;
-}
-#ircchat .action .msg_text{
-    color: purple;
-}
-#ircchat .ctcp .msg_text{
-    color: black;
-}
-#ircchat .error .msg_text{
-    font-style: italic;
-    color: #800;
+#ircchat .channels .channel .messages {
+    width: 600px;
+    left: 0;
 }
 
-/** Special spans */
-#ircchat .msg_text .special{
+#ircchat .channels .channel .messages:last-child {
+    width: 800px;
+}
+
+#ircchat .channels .channel .messages li {
+    margin: 2px 0;
+}
+
+#ircchat .channels .channel .messages .chat-message .user{
     font-weight: bold;
+    padding:0 5px;
 }
-#ircchat .msg_text a.user{
+
+#ircchat .channels .channel .users {
+    width: 200px;
+    left: 600px;
 }
-#ircchat .msg_user a.user{
-    color: inherit;
-}
-#ircchat .msg_user a.user:hover{
-    color: orange;
+
+#ircchat .input-zone {
+    padding-top: 480px;
+    height: 20px;
 }

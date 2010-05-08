@@ -1,15 +1,81 @@
 var THIrcUI = function(handler, username, root) {
     this.handler = handler;
     this.self = IrcChannelUser.fromName(username);
-    this.username = username;
+
+    this.ghostId = 0;
+    this.realName = username;
+    this.username = this.cleanNick(this.realName);
     this.root = root;
+    this.selfUser = IrcChannelUser.fromName(this.username);
+
     this.waitingForPassword = false;
+
     this.defaultChannels = ['#thehelper'];
     this.channelList = new IrcChatList();
     this.systemChannel = new IrcVirtualChannel('*system*', IrcChannelUser.fromName('***System***'))
     this.channelList.add(this.systemChannel);
     this.channelList.setCurrent(this.systemChannel);
     this.handler.registerEventHandler(this);
+    this.fsm = new FSM(['start', 'onReceive001', 'onReceive433', 
+                        'sendPass', 
+                        'onReceiveNickservNotRegistered',
+                        'onReceiveNickservPasswordAccepted'],
+                       {
+                           'Ident' : function(e, d, s) {
+                               if (e == 'start') {
+                                   s.irc.pass();
+                                   s.irc.ident();
+                                   s.irc.nick();
+                                   s.hasGhost = false;
+                                   return 'Nick';
+                               }
+                           },
+                           'Nick' : function(e, d, s) {
+                               if (e=='onReceive001') {
+                                   s.irc.input.password();
+                                   s.irc.input.enable();
+                                   s.irc.input.focus();
+                                   return 'WaitingForPass';
+                               } else if (e=='onReceive433') {
+                                   s.hasGhost = true;
+                                   s.irc.ghostNick();
+                                   return 'Nick';
+                               }
+                           },
+                           'WaitingForPass' : function(e, d, s) {
+                               if (e=='sendPass') {
+                                   s.irc.input.disable();
+                                   if (s.hasGhost) {
+                                       s.irc.disconnectGhost();
+                                       return 'DisconnectingGhost';
+                                   } else {
+                                       s.irc.nickservIdentify();
+                                       return 'Identifying';
+                                   }
+                               }
+                           },
+                           'DisconnectingGhost' : function(e, d, s) {},
+                           'Identifying' : function(e, d, s) {
+                               if (e=='onReceiveNickservNotRegistered') {
+                                   s.irc.registerNick();
+                                   return 'WaitingForRegistration';
+                               } else if (e=='onReceiveNickservPasswordAccepted') {
+                                   s.irc.joinDefaultChannels();
+                                   s.irc.input.text();
+                                   s.irc.input.enable();
+                                   return 'JoinedChannel';
+                               }
+                           },
+                           'WaitingForRegistration' : function(e, d, s) {
+                               // TODO: identify
+                           },
+                           'JoinedChannel' : function(e, d, s) {
+                               // TODO: ...
+                           }
+                       }, 'Ident',
+                       {'irc':this});
+    new IrcNickserv(this.handler);
+    this.handler.registerEventHandler(this.fsm);
     this.paintChat();
 };
 THIrcUI.prototype = new Object();
@@ -22,52 +88,33 @@ THIrcUI.prototype.connectIrc = function(socket) {
 };
 // When we have an open connection to the irc, probe user for login details
 THIrcUI.prototype.onOpen = function() {
-    this.handler.sendEvent({
-        'identifier' : 'SendPass',
-        'password'   : 'webchat'
-    });
-    if (!this.setNick(this.username)) {
-        // TODO: unable to set nick
-    }
-    this.focusInput();
+    this.fsm.start();
     this.waitingForPassword = true;
-    this.input.password();
-    this.input.enable();
     this.addSysMessage("Please enter your forum password");
-};
-THIrcUI.prototype.focusInput = function() {
-    $('.input-zone input', this.root).focus();
 };
 // When we get login details, connect to nickserv and
 // do login/register procedure
 THIrcUI.prototype._onSubmit = function(value) {
     if (this.waitingForPassword == true) {
         this.password = value;
-        new IrcNickserv(this.handler);
-        this.handler.sendEvent({
-            'identifier' : 'SendNickservIdentify',
-            'password' : this.password
-        });
         this.waitingForPassword = false;
-        this.input.text();
-        this.input.disable();
+        this.fsm.sendPass();
     } else {
-        
+        var currentChannel = this.channelList.getCurrent();
+        this.handler.sendEvent({
+            'identifier' : 'SendPrivMsg',
+            'destination' : currentChannel.name(),
+            'message' : value
+        });
+        currentChannel.addMessage(new IrcMessage(this.selfUser, value));
     }
 };
-THIrcUI.prototype.onReceiveNickservNotRegistered = function(e) {
-    if (e.nick == this.nickname) {
-        this.handler.sendEvent({
-            'identifier' : 'SendNickservRegister',
-            'nickname' : this.nickname,
-            'domain'    : 'www.thehelper.net'
-        });
-    };
-};
-THIrcUI.prototype.onReceiveNickservPasswordAccepted = function(e) {
-    this.joinDefaultChannels();
-    this.input.enable();
-    this.input.text();
+THIrcUI.prototype.registerNick = function() {
+    this.handler.sendEvent({
+        'identifier' : 'SendNickservRegister',
+        'nickname' : this.nickname,
+        'domain'    : 'www.thehelper.net'
+    });
 };
 THIrcUI.prototype.onReceiveNOTICE = function(e) {
     this.addSysMessage(e.args[1]);
@@ -86,16 +133,17 @@ THIrcUI.prototype.onReceivePRIVMSG = function(e) {
     var channelName = e.args[0];
     var msg = e.args[1];
     var from = e.prefix;
-    channelName = this.self.name() == channelName ? from : channelName;
-    var channel = this.channelList.getChannel(channelName);
     var fromUser = IrcChannelUser.fromHostString(from)
+    channelName = this.self.name() == channelName ? fromUser.name() : channelName;
+    var channel = this.channelList.getChannel(channelName);
     if (channel == null) {
         channel = new IrcPrivateChat(fromUser);
-        this.add(channel);
+        this.channelList.add(channel);
     };
     channel.addMessage(new IrcMessage(fromUser, msg));
 };
 THIrcUI.prototype.onReceive353 = function(e) {
+    // Channel names list
     var channelName = e.args[2];
     var users = e.args[3].trim().split(" ");
     var channel = this.channelList.getChannel(channelName);
@@ -103,13 +151,35 @@ THIrcUI.prototype.onReceive353 = function(e) {
         channel.join(IrcChannelUser.fromName(users[i]));
     };
 };
-THIrcUI.prototype.setNick = function (nickname) {
-    nickname = this.cleanNick(nickname);
-    this.nickname = nickname;
-    this.irc.ident(this.nickname, '8 *', this.nickname);
-    this.irc.nick(this.nickname);
-    $('.show-nick', this.root).html(nickname);
-    return true;  
+THIrcUI.prototype.ghostNick = function() {
+    // Nickname already in use (disconnect ghost)
+    this.username = this.cleanNick(this.realName + this.ghostId++);
+    this.nick();
+};
+THIrcUI.prototype.disconnectGhost = function() {
+    this.handler.sendEvent({
+        'identifier' : 'SendNickservDisconnectGhost',
+        'username'   : this.cleanNick(this.realName),
+        'password'   : this.password
+    });
+};
+THIrcUI.prototype.nickservIdentify = function() {
+    this.handler.sendEvent({
+        'identifier' : 'SendNickservIdentify',
+        'password' : this.password
+    });    
+};
+THIrcUI.prototype.pass = function() {
+    this.handler.sendEvent({
+        'identifier' : 'SendPass',
+        'password'   : 'webchat'
+    });
+};
+THIrcUI.prototype.ident = function() {
+    this.irc.ident(this.username, '8 *', this.username);
+};
+THIrcUI.prototype.nick = function(username) {
+    this.irc.nick(this.username);
 };
 THIrcUI.prototype.cleanNick = function(nick){
     var ret = String(nick).replace(/[^a-zA-Z0-9\-_~]/g, '');
@@ -215,53 +285,10 @@ THIrcInput.prototype.password = function() {
 };
 THIrcInput.prototype.text = function() {
     var old = this.input.replaceWith('<input type="text" class="input"/>');
-    this.input = $('input[type=password]', this.root);
+    this.input = $('input[type=text]', this.root);
     if (!this.enabled)
         this.input.attr('disabled', 'true');
 };
-
-// A message from somebody
-var THIrcMessage = function(from, message) {
-    this.from = from;
-    this.message = message;
-    this.root = $('<li>').append($('<span class="user">').text(this.from)).append($('<span class="message">').text(this.message));
+THIrcInput.prototype.focus = function() {
+    this.input.focus();
 };
-THIrcMessage.prototype = new Object();
-THIrcMessage.prototype.get = function() {
-    return this.root;
-};
-
-var THIrcChannelList = function() {
-    this.list = [];
-    this.tabId = 0;
-    this.classLookup = [];
-    this.current = "";
-    this.root = $('<ul class="tabs">');
-};
-THIrcChannelList.prototype.setCurrent = function(current) {
-    $('.' + this.classLookup[this.current], this.root).removeClass('current');
-    this.current = current;
-    $('.' + this.classLookup[this.current], this.root).addClass('current');
-};
-THIrcChannelList.prototype.getCurrent = function(current) {
-    return this.list[this.current];
-};
-THIrcChannelList.prototype.get = function() {
-    return this.root;
-}
-THIrcChannelList.prototype.add = function(channel) {
-    var name = channel.getName(); 
-    this.classLookup[name] = 'tabid_' + this.tabId++;
-    this.list[name] = channel;
-    this.root.append($('<li>')
-                     .addClass(this.classLookup[name])
-                     .append('<a class="close">')
-                     .append($('<a class="link">').text(channel.getName()))
-                    );
-};
-
-// A channel user and related info
-var THIrcUser = function() {
-    
-};
-THIrcUser.prototype = new Object();

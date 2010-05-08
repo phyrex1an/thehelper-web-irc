@@ -405,47 +405,13 @@ IrcNickserv.prototype.onSendNickservRegister = function(e) {
         'message' : 'register ' + e.domain + ' ' + e.nickname
     });
 };
-
-
-// ChannelManager (manages traffic to all channels and private chats...)
-// Listens to:
-//    SendJoin
-//    ReceiveJoin
-// Generates:
-//    Send
-// Methods:
-//    addMessageListener(l, c)  -- l listener object, c channel to listen on
-//    removeMessagelListener(l, c)
-//    addChannelListener(l)
-//    removeChannelListener(l)
-var IrcChannelManager = function(handler) {
-    this.handler = handler;
-    this.channels = {};
-    this.handler.registerEventHandler(this);
+IrcNickserv.prototype.onSendNickservDisconnectGhost = function(e) {
+    this.handler.sendEvent({
+        'identifier' : 'SendPrivMsg',
+        'destination' : this.nickserv,
+        'message' : 'ghost ' + e.username + ' ' + e.password
+    });
 };
-IrcChannelManager.prototype.addMessageListener = function(l, c) {
-
-};
-IrcChannelManager.prototype.removeMessageListener = function(l, c) {
-
-};
-IrcChannelManager.prototype.addChannelListener = function(l) {
-
-};
-IrcChannelManager.prototype.removeChannelListener = function(l) {
-
-};
-
-IrcChannelManager.prototype.onReceiveJOIN = function(e) {
-    var joined = e.args[0];
-    this.channels[joined] = new IrcChannel(joined);
-};
-IrcChannelManager.prototype.onSendPrivMsg = function(e) {
-    if (this.channels[e.destination]) {
-        this.messages[channel].sendMessage(e.message);
-    }
-};
-
 
 var IrcChatList = function() {
     this.html = $('<ul class="channels">'); 
@@ -455,6 +421,13 @@ IrcChatList.prototype.add = function(chat) {
     // TODO: Check if chat is in list
     this.chats.push(chat);
     this.html.append(chat.view());
+    var self = this;
+    chat.click(function() {
+        self.setCurrent(chat);
+    });
+    chat.close(function() {
+        self.remove(chat);
+    });
 };
 IrcChatList.prototype.remove = function(chat) {
     for (var i in this.chats) {
@@ -470,6 +443,9 @@ IrcChatList.prototype.setCurrent = function(chat) {
     this.current = chat;
     chat.addCurrent();
 };
+IrcChatList.prototype.getCurrent = function() {
+    return this.current;
+};
 IrcChatList.prototype.getChannel = function(channelName) {
     for (var i in this.chats) {
         if (this.chats[i].name() == channelName) {
@@ -481,7 +457,7 @@ IrcChatList.prototype.getChannel = function(channelName) {
 IrcChatList.prototype.addMessage = function(channelName, msg, from) {
     var channel = this.getChannel(channelName);
     if (channel == null) {
-
+        // TODO: Error? Add chat? Investigate.
     };
     channel.addMessage(msg, from);
 };
@@ -534,6 +510,27 @@ var IrcChat = function() {
 IrcChat.prototype.addMessage = function(message) {
     this.messages.add(message);
 };
+IrcChat.prototype.buildHtml = function(canClose) {
+    this.html = $('<li class="channel">');
+    var title = $('<h2 class="title">');
+    var self = this;
+    this.onClick = function() {};
+    this.onClose = function() {};
+    if (canClose) {
+        var close_button = $('<a class="close" alt="Close">')
+            .click(function() {
+                self.close();
+            });
+        title.append(close_button);
+    };
+    this.title = $('<span>')
+        .text(this.name())
+        .click(function() {
+            self.click();
+        });
+    title.append(this.title);
+    this.html.append(title);
+};
 IrcChat.prototype.view = function() {
     return this.html;
 };
@@ -543,12 +540,28 @@ IrcChat.prototype.addCurrent = function() {
 IrcChat.prototype.removeCurrent = function() {
     this.html.removeClass('current');
 };
+IrcChat.prototype.setTitle = function(title) {
+    this.title.text(title);
+};
+IrcChat.prototype.close = function(f) {
+    if (typeof f == "undefined") {
+        this.onClose();
+    } else {
+        this.onClose = f;
+    };
+};
+IrcChat.prototype.click = function(f) {
+    if (typeof f == "undefined") {
+        this.onClick();
+    } else {
+        this.onClick = f;
+    };
+};
 
 var IrcPrivateChat = function(withUser) {
-    this.html = $('<li>');
     this.messages = new IrcMessageList();
     this.user = withUser;
-    this.html.append(this.user.viewTitle());
+    this.buildHtml(true);
     this.html.append(this.messages.view());
 };
 IrcPrivateChat.prototype = new IrcChat();
@@ -562,11 +575,10 @@ IrcPrivateChat.prototype.name = function() {
 };
 
 var IrcChannel = function(name) {
-    this.html = $('<li>');
     this.messages = new IrcMessageList();
     this._name = name;
     this.users = new IrcUserList();
-    this.html.append($('<h2>').text(this._name));
+    this.buildHtml(true);
     this.html.append(this.messages.view());
     this.html.append(this.users.view());
 };
@@ -584,12 +596,11 @@ IrcChannel.prototype.getUser = function(userName) {
     return this.users.get(userName);
 };
 
-var IrcVirtualChannel = function(name, messageUser) {
-    this.html = $('<li>');
+var IrcVirtualChannel = function(name, messageUser, closable) {
     this.messages = new IrcMessageList();
     this._name = name;
     this.messageUser = messageUser;
-    this.html.append($('<h2>').text(this._name));
+    this.buildHtml();
     this.html.append(this.messages.view());
 };
 IrcVirtualChannel.prototype = new IrcChat();
@@ -602,11 +613,11 @@ IrcVirtualChannel.prototype.addLogMessage = function(messageContent) {
 
 
 var IrcMessage = function(from, content) {
-    this.html = $('<li>');
+    this.html = $('<li class="chat-message">');
     this.from = from;
     this.content = content;
-    this.html.append($('<span>').text(this.from.name()));
-    this.html.append($('<span>').text(this.content));
+    this.html.append($('<span class="user">').text(this.from.name()));
+    this.html.append($('<span class="body">').text(this.content));
 };
 IrcMessage.prototype.view = function() {
     return this.html;

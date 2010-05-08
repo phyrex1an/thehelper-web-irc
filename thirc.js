@@ -1,5 +1,6 @@
 $(document).ready(function(){
     var root = $('#ircchat');
+    root.html('');
     var handler = new IRCHandler();
     var irc = new IRCClient(handler);
     new IRCPingClient(handler); 
