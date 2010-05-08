@@ -44,7 +44,6 @@ THIrcUI.prototype._onSubmit = function(value) {
     if (this.waitingForPassword == true) {
         this.password = value;
         new IrcNickserv(this.handler);
-        new IrcChannelManager(this.handler);
         this.handler.sendEvent({
             'identifier' : 'SendNickservIdentify',
             'password' : this.password
@@ -98,7 +97,7 @@ THIrcUI.prototype.onReceivePRIVMSG = function(e) {
 };
 THIrcUI.prototype.onReceive353 = function(e) {
     var channelName = e.args[2];
-    var users = e.args[3].split(" ");
+    var users = e.args[3].trim().split(" ");
     var channel = this.channelList.getChannel(channelName);
     for (var i in users) {
         channel.join(IrcChannelUser.fromName(users[i]));
