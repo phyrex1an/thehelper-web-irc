@@ -219,26 +219,6 @@ THIrcUI.prototype.connectionFailed = function() {
     this.addSysMessage("Connection failed...");
 };
 
-
-var THIrcChannelUI = function(chanName) {
-    this.messages = [];
-    this.root = $('<div class="channel">').append('<dl class="history">').append('<div class="user-info">');
-    this.messageCanvas = $('.history', this.root);
-    this.userCanvas = $('.user-info', this.root);
-    this.chanName = chanName;
-};
-THIrcChannelUI.prototype = new Object();
-THIrcChannelUI.prototype.addMessage = function(from, message) {
-    var newMessage = new THIrcMessage(from, message);
-    this.messageCanvas.append(newMessage.get());
-};
-THIrcChannelUI.prototype.get = function() {
-    return this.root;
-};
-THIrcChannelUI.prototype.getName = function() {
-    return this.chanName;
-};
-
 // THIrcInput deals with the input field to the chat.
 var THIrcInput = function() {
     this.listeners = [];

@@ -1,0 +1,9 @@
+#!/bin/bash
+
+RELATIVEPATH=".."
+ABSPATH=`cd $RELATIVEPATH && pwd`
+
+for f in $@
+do
+    echo "document.write('<script src=\""`echo $f | sed -e s:$ABSPATH::`"\" type=\"text/javascript\"></script>');"
+done

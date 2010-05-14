@@ -1,6 +1,6 @@
-[submodule "APE_JSF"]
-	path = APE_JSF
-	url = git://github.com/APE-Project/APE_JSF.git
-[submodule "jquery"]
-	path = jquery
+[submodule "lib/jquery"]
+	path = lib/jquery
 	url = git://github.com/jquery/jquery.git
+[submodule "lib/APE_JSF"]
+	path = lib/APE_JSF
+	url = git://github.com/APE-Project/APE_JSF.git

@@ -1,0 +1,9 @@
+#!/bin/bash
+
+RELATIVEPATH=".."
+ABSPATH=`cd $RELATIVEPATH && pwd`
+
+for f in $@
+do
+    echo "@import url("`echo $f | sed -e s:$ABSPATH::`");"
+done

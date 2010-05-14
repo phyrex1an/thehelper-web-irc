@@ -1,0 +1,158 @@
+<?xml version="1.0" encoding="ISO-8859-1"?>
+<!-- http://www.javascriptr.com/2009/07/21/setting-up-a-javascript-build-process/ -->
+<!--
+   The <project> tag defines the ant project and 
+   the default build task to run initiated. It 
+   also defines the base directory which is set
+   to the current folder this file lives in.
+-->
+<project name="TheHelper web chat" default="dist" basedir=".">
+   <!--
+      The <property> tag defines variables we 
+      are using to store the path to different 
+      files and tools required and input/output 
+      directories. You use those variables by
+      like this: ${variable}
+   -->
+   <property name="BUILD_DIR"      value="build" />
+   <property name="SOURCE_DIR"     value="src" />
+   <property name="LIB_DIR"     value="lib" />
+   <property name="DIST_DIR"    value="dist" />
+   <property name="BIN_DIR"    value="bin" />
+
+
+   <fileset id="js.lib.files" dir="${LIB_DIR}" casesensitive="yes">
+      <include name="APE_JSF/Build/yuiCompressor/apeClientJS.js"/>
+      <include name="jquery/dist/jquery.min.js"/>
+   </fileset>
+
+   <fileset id="js.src.files" dir="${SOURCE_DIR}/js" casesensitive="yes">
+      <include name="config.js"/>
+      <include name="irc.js"/>
+      <include name="ircui.js"/>
+      <include name="fsm.js"/>
+      <include name="thirc.js"/>
+   </fileset>
+
+   <fileset id="js.files" refid="js.lib.files, js.src.files" />
+
+   <fileset id="css.lib.files" dir="${LIB_DIR}">
+      <exclude name="**"/>
+   </fileset>
+
+   <fileset id="css.src.files" dir="${SOURCE_DIR}/css/">
+     <include name="irc.css"/>
+   </fileset>
+
+   <fileset id="css.files" refid="css.src.files"/>
+
+   <!--
+      The <target> tags defines an ant task.
+      You have to give it a unique name and
+      list other task (if any) this task 
+      depends on. Ant will run those task first.
+ 
+      This task below is the default task defined
+      in the <project> tag. It will run all the
+      dependents.
+   -->
+   <target name="build" depends="clean, bundle_javascript, bundle_css, compress_javascript, compress_css" />
+   <!--
+      This is the "create JavaScript bundles" task
+      used to create concatenated files for each 
+      category defined and a main application bundle
+      which contains all the code we need in one file.
+   -->
+   <target name="bundle_javascript">
+      <!-- create the output directory for built files -->
+      <mkdir dir="${BUILD_DIR}/js"/>
+      <echo>Bundle JavaScript Files...</echo>
+      <!-- external.js: all shared third party code -->
+      <concat destfile="${BUILD_DIR}/js/external.js">
+         <fileset refid="js.lib.files" />
+      </concat>
+      <!-- core.js: all the core project related code -->
+      <concat destfile="${BUILD_DIR}/js/core.js">
+         <fileset refid="js.src.files" />
+      </concat>
+      <!-- main.js: the main big bundle of all the previous bundles -->
+      <concat destfile="${BUILD_DIR}/js/main.js">
+         <filelist dir="${BUILD_DIR}/js/" files="external.js, core.js"/>
+      </concat>
+      <echo>JavaScript Bundles Done</echo>
+   </target>
+
+
+   <target name="bundle_css">
+       <mkdir dir="${BUILD_DIR}/css"/>
+       <echo>Bundle CSS Files...</echo>
+       <concat destfile="${BUILD_DIR}/css/main.css">
+         <fileset refid="css.src.files" />
+       </concat>
+       <echo>CSS Bundles Done</echo>
+   </target>
+
+   <!--
+      This task will compress the main.js bundle using YUI 
+      compressor and rename the file main.compress.js
+   -->
+   <target name="compress_javascript" depends="bundle_javascript">
+      <echo>Compressing JavaScript Files...</echo>
+      <apply executable="yui-compressor" parallel="false">
+         <fileset dir="${BUILD_DIR}/js" includes="main.js"/>
+         <srcfile/>
+         <arg line="-o"/>            
+         <mapper type="glob" from="*.js" to="${BUILD_DIR}/js/*.compress.js"/> 
+         <targetfile/>
+      </apply>
+      <echo>JavaScript Compression Done</echo>
+   </target>
+
+   <target name="compress_css" depends="bundle_css">
+      <echo>Compressing CSS Files...</echo>
+      <apply executable="yui-compressor" parallel="false">
+         <fileset dir="${BUILD_DIR}/css" includes="main.css"/>
+         <srcfile/>
+         <arg line="-o"/>
+         <mapper type="glob" from="*.js" to="${BUILD_DIR}/js/*.compress.css"/>
+         <targetfile/>
+      </apply>
+      <echo>CSS Compression Done</echo>
+   </target>
+
+   <target name="dist" depends="build">
+      <copy todir="${DIST_DIR}/js">
+         <filelist dir="${BUILD_DIR}/js" files="main.js"/>
+      </copy>
+      <copy todir="${DIST_DIR}/css">
+         <filelist dir="${BUILD_DIR}/css" files="main.css"/>
+      </copy>
+   </target>
+
+   <target name="dev" depends="clean">
+      <apply executable="./mkjavascript" dir="${BIN_DIR}" output="${DIST_DIR}/js/main.js" parallel="true">
+         <fileset refid="js.lib.files" />
+         <fileset refid="js.src.files" />
+      </apply>
+
+      <apply executable="./mkcss" dir="${BIN_DIR}" output="${DIST_DIR}/css/main.css" parallel="true">
+         <fileset refid="css.lib.files" />
+         <fileset refid="css.src.files" />
+      </apply>
+   </target>
+
+   <!--
+      This task will clean out any previous build files by
+      deleting the current build folder and re-creating it
+   -->
+   <target name="clean">
+      <echo>Cleaning...</echo>
+      <delete dir="${BUILD_DIR}"/>
+      <delete dir="${DIST_DIR}"/>
+      <echo>Creating...</echo>
+      <mkdir dir="${BUILD_DIR}"/>
+      <mkdir dir="${DIST_DIR}"/>
+      <mkdir dir="${DIST_DIR}/js"/>
+      <mkdir dir="${DIST_DIR}/css"/>
+   </target>
+</project>
