@@ -30,6 +30,8 @@
       <include name="config.js"/>
       <include name="irc.js"/>
       <include name="ircui.js"/>
+      <include name="irc-client-model.js"/>
+      <include name="irc-client-view.js"/>
       <include name="fsm.js"/>
       <include name="thirc.js"/>
    </fileset>

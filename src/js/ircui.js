@@ -16,64 +16,65 @@ var THIrcUI = function(handler, username, root) {
     this.channelList.add(this.systemChannel);
     this.channelList.setCurrent(this.systemChannel);
     this.handler.registerEventHandler(this);
-    this.fsm = new FSM(['start', 'onReceive001', 'onReceive433', 
-                        'sendPass', 
-                        'onReceiveNickservNotRegistered',
-                        'onReceiveNickservPasswordAccepted'],
-                       {
-                           'Ident' : function(e, d, s) {
-                               if (e == 'start') {
-                                   s.irc.pass();
-                                   s.irc.ident();
-                                   s.irc.nick();
-                                   s.hasGhost = false;
-                                   return 'Nick';
-                               }
-                           },
-                           'Nick' : function(e, d, s) {
-                               if (e=='onReceive001') {
-                                   s.irc.input.password();
-                                   s.irc.input.enable();
-                                   s.irc.input.focus();
-                                   return 'WaitingForPass';
-                               } else if (e=='onReceive433') {
-                                   s.hasGhost = true;
-                                   s.irc.ghostNick();
-                                   return 'Nick';
-                               }
-                           },
-                           'WaitingForPass' : function(e, d, s) {
-                               if (e=='sendPass') {
-                                   s.irc.input.disable();
-                                   if (s.hasGhost) {
-                                       s.irc.disconnectGhost();
-                                       return 'DisconnectingGhost';
-                                   } else {
-                                       s.irc.nickservIdentify();
-                                       return 'Identifying';
-                                   }
-                               }
-                           },
-                           'DisconnectingGhost' : function(e, d, s) {},
-                           'Identifying' : function(e, d, s) {
-                               if (e=='onReceiveNickservNotRegistered') {
-                                   s.irc.registerNick();
-                                   return 'WaitingForRegistration';
-                               } else if (e=='onReceiveNickservPasswordAccepted') {
-                                   s.irc.joinDefaultChannels();
-                                   s.irc.input.text();
-                                   s.irc.input.enable();
-                                   return 'JoinedChannel';
-                               }
-                           },
-                           'WaitingForRegistration' : function(e, d, s) {
-                               // TODO: identify
-                           },
-                           'JoinedChannel' : function(e, d, s) {
-                               // TODO: ...
-                           }
-                       }, 'Ident',
-                       {'irc':this});
+    this.fsm = new FSM(
+        ['start', 'onReceive001', 'onReceive433', 
+         'sendPass', 
+         'onReceiveNickservNotRegistered',
+         'onReceiveNickservPasswordAccepted'],
+        {
+            'Ident' : function(e, d, s) {
+                if (e == 'start') {
+                    s.irc.pass();
+                    s.irc.ident();
+                    s.irc.nick();
+                    s.hasGhost = false;
+                    return 'Nick';
+                }
+            },
+            'Nick' : function(e, d, s) {
+                if (e=='onReceive001') {
+                    s.irc.input.password();
+                    s.irc.input.enable();
+                    s.irc.input.focus();
+                    return 'WaitingForPass';
+                } else if (e=='onReceive433') {
+                    s.hasGhost = true;
+                    s.irc.ghostNick();
+                    return 'Nick';
+                }
+            },
+            'WaitingForPass' : function(e, d, s) {
+                if (e=='sendPass') {
+                    s.irc.input.disable();
+                    if (s.hasGhost) {
+                        s.irc.disconnectGhost();
+                        return 'DisconnectingGhost';
+                    } else {
+                        s.irc.nickservIdentify();
+                        return 'Identifying';
+                    }
+                }
+            },
+            'DisconnectingGhost' : function(e, d, s) {},
+            'Identifying' : function(e, d, s) {
+                if (e=='onReceiveNickservNotRegistered') {
+                    s.irc.registerNick();
+                    return 'WaitingForRegistration';
+                } else if (e=='onReceiveNickservPasswordAccepted') {
+                    s.irc.joinDefaultChannels();
+                    s.irc.input.text();
+                    s.irc.input.enable();
+                    return 'JoinedChannel';
+                }
+            },
+            'WaitingForRegistration' : function(e, d, s) {
+                // TODO: identify
+            },
+            'JoinedChannel' : function(e, d, s) {
+                // TODO: ...
+            }
+        }, 'Ident',
+        {'irc':this});
     new IrcNickserv(this.handler);
     this.handler.registerEventHandler(this.fsm);
     this.paintChat();
