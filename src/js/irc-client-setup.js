@@ -32,3 +32,6 @@ $(document).ready(function() {
 if (typeof console == "undefined") {
     var console = {'log':function(){}};
 }
+if (typeof console.log == "undefined") {
+    console.log = function() {};
+}
