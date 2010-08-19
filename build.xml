@@ -19,11 +19,11 @@
    <property name="LIB_DIR"     value="lib" />
    <property name="DIST_DIR"    value="dist" />
    <property name="BIN_DIR"    value="bin" />
-
+   
 
    <fileset id="js.lib.files" dir="${LIB_DIR}" casesensitive="yes">
-      <include name="APE_JSF/Build/yuiCompressor/apeClientJS.js"/>
-      <include name="jquery/dist/jquery.min.js"/>
+      <include name="APE_JSF/Build/uncompressed/apeClientJS.js"/>
+      <include name="jquery/dist/jquery.js"/>
    </fileset>
 
    <fileset id="js.src.files" dir="${SOURCE_DIR}/js" casesensitive="yes">
@@ -32,8 +32,10 @@
       <include name="ircui.js"/>
       <include name="irc-client-model.js"/>
       <include name="irc-client-view.js"/>
+      <include name="irc-client-controller.js"/>
       <include name="fsm.js"/>
-      <include name="thirc.js"/>
+      <include name="irc-client-proxy.js"/>
+      <include name="irc-client-setup.js"/>
    </fileset>
 
    <fileset id="js.files" refid="js.lib.files, js.src.files" />

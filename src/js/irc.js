@@ -42,7 +42,7 @@ IRCHandler.prototype.registerEventHandler = function(handler) {
     this.handlers.push(handler);
 };
 IRCHandler.prototype.sendEvent = function(e) {
-    console.log("Event: %o", e);
+    Ape.log("IRC EVENT: " + hashToDebug(e));
     var eventCallback = "on" + e.identifier;
     for (var i=this.handlers.length-1; i>=0; i--) {
         if (typeof this.handlers[i][eventCallback] == "function") {
@@ -54,38 +54,121 @@ IRCHandler.prototype.removeEventHandler = function(handler) {
 
 };
 
+IRCHandler.prototype.connect = function(hostname, port, socket) {
+    this.sendEvent({
+        'identifier': 'SendConnect',
+        'hostname' : hostname,
+        'port' : port,
+        'socket' : socket
+    });
+};
 
-IRCClient = function(handler) {
+IRCHandler.prototype.ident = function(nickname, flags, realname) {
+    this.sendEvent({
+        'identifier' : 'SendIdent',
+        'nickname' : nickname,
+        'modes' : flags,
+        'realname' : realname
+    });
+};
+
+IRCHandler.prototype.nick = function(nick) {
+    this.sendEvent({
+        'identifier' : 'SendChangeNick',
+        'nickname': nick
+    });
+};
+
+IRCHandler.prototype.ctcp = function(target, message, rep) {
+    this.sendEvent({
+        'identifier' : 'SendCTCP',
+        'destination' : target,
+        'command' : command,
+        'rep' : rep
+    });
+};
+
+IRCHandler.prototype.action = function(destination, message) {
+    this.sendEvent({
+        'identifier' : 'SendAction',
+        'destination' : destination,
+        'message' : message
+    });
+};
+
+IRCHandler.prototype.part = function(channel, reason) {
+    this.sendEvent({
+        'identifier' : 'SendPart',
+        'channel' : channel,
+        'reason' : reason            
+    });
+};
+
+IRCHandler.prototype.quit = function(reason) {
+    this.sendEvent({
+        'identifier' : 'SendQuit',
+        'reason' : reason
+    });
+};
+
+IRCHandler.prototype.join = function(channel) {
+    this.sendEvent({
+        'identifier' : 'SendJoin',
+        'channel' : channel
+    });
+};
+
+IRCHandler.prototype.privMsg = function(target, message) {
+    this.sendEvent({
+        'identifier' : 'SendPrivMsg',
+        'destination' : target,
+        'message' : message
+    });
+};
+
+IRCHandler.prototype.identify = function(password) {
+    this.sendEvent({
+        'identifier' : 'SendNickservIdentify',
+        'password' : password
+    });
+};
+
+IRCHandler.prototype.registerNick = function(nick, domain) {
+    this.sendEvent({
+        'identifier' : 'SendNickservRegister',
+        'nickname' : nick,
+        'domain' : domain
+    });
+};
+
+
+IRCClient = function(handler, socket) {
     this.handler = handler;
     this.handler.registerEventHandler(this);
 
-    this.connection = null;
+    this.connection = socket;
     this.buffer = "";
     this.ENDL = "\r\n";
-    this.connect = function(hostname, port, socket) {
-        this.connection = socket;
-        var self = this;
-        this.connection.onopen =  function() {
-            self.handler.sendEvent({'identifier':'Open'});
-        };
-        this.connection.onclose = function(code) {
-            self.handler.sendEvent({'identifier':'Close'});
-        };
-        this.connection.onread = function(data) {
-            self.buffer += data;
-            self.parse_buffer();
-        };
-        this.connection.open(hostname, port);
-        // TODO set onerror.
+    var s = this;
+
+    socket.onConnect = function() {
+        handler.sendEvent({'identifier':'Open'});
     };
+    socket.onDisconnect = function() {
+        handler.sendEvent({'identifier':'Close'});
+    };
+    socket.onRead = function(data) {
+        s.readData(data);
+    };
+
     this._createTransport = function() {
         return new TCPSocket();
     };
     this.onSendClose = function(e) {
         this.connection.close();
-        this.connection.onopen = null;
-        this.connection.onclose = null;
-        this.connection.onread = null;
+        this.connection.onConnect = null;
+        this.connection.onDisconnect = null;
+        this.connection.onRead = null;
     }
     this.onSend = function(e) {
         this.handler.sendEvent({
@@ -95,7 +178,7 @@ IRCClient = function(handler) {
     };
 
     this.onSendRaw = function(e) {
-        this.connection.send(e.payload);
+        this.connection.write(e.payload);
     };
 
     this.onSendIdent = function(e) {
@@ -191,6 +274,10 @@ IRCClient = function(handler) {
         });
     };
 
+    this.readData = function(data) {
+        this.buffer += data;
+        this.parse_buffer();        
+    };
 
     // Internal Functions
 
@@ -281,62 +368,6 @@ IRCClient = function(handler) {
             });
         }
     };
-
-    // Helper functions
-    this.ident = function(nickname, flags, realname) {
-        this.handler.sendEvent({
-            'identifier' : 'SendIdent',
-            'nickname' : nickname,
-            'modes' : flags,
-            'realname' : realname
-        });
-    };
-
-    this.nick = function(nick) {
-        this.handler.sendEvent({
-            'identifier' : 'SendChangeNick',
-            'nickname': nick
-        });
-    };
-
-    this.ctcp = function(target, message, rep) {
-        this.handler.sendEvent({
-            'identifier' : 'SendCTCP',
-            'destination' : target,
-            'command' : command,
-            'rep' : rep
-        });
-    };
-
-    this.action = function(destination, message) {
-        this.handler.sendEvent({
-            'identifier' : 'SendAction',
-            'destination' : destination,
-            'message' : message
-        });
-    };
-
-    this.part = function(channel, reason) {
-        this.handler.sendEvent({
-            'identifier' : 'SendPart',
-            'channel' : channel,
-            'reason' : reason            
-        });
-    };
-
-    this.quit = function(reason) {
-        this.handler.sendEvent({
-            'identifier' : 'SendQuit',
-            'reason' : reason
-        });
-    };
-
-    this.join = function(channel) {
-        this.handler.sendEvent({
-            'identifier' : 'SendJoin',
-            'channel' : channel
-        });
-    };
 };
 
 IRCPingClient = function(handler) {
@@ -362,7 +393,7 @@ IRCPingClient.prototype.onReceivePING = function(e) {
 //    SendPrivMsg
 //    ReceiveNickservNotRegistered
 //    ReceiveNickservPasswordAccepted
-var IrcNickserv = function(handler) {
+var IrcNickserv = function(handler) { // TODO: Rename to IRCNickserv
     this.handler = handler;
     this.nickserv = 'NickServ';
     this.handler.registerEventHandler(this);
@@ -372,11 +403,11 @@ IrcNickserv.prototype.onSendNickservIdentify = function(e) {
     this.handler.sendEvent({
         'identifier' : 'SendPrivMsg',
         'destination' : this.nickserv,
-        'message' : 'identify ' + e.password
+        'message' : 'IDENTIFY ' + e.password
     });
 };
 IrcNickserv.prototype.onReceiveNOTICE = function(e) {
-    if (e.prefix == "NickServ!services@services.thehelper.net") {
+    if (e.prefix.test("^NickServ!")) {
 
         if (e.args[1] == "Your nick isn't registered.") {
             this.handler.sendEvent({
@@ -394,6 +425,10 @@ IrcNickserv.prototype.onReceiveNOTICE = function(e) {
                 'identifier' : 'ReceiveNickservPasswordAccepted',
                 'nick' : e.args[0]
             });
+        } else if (e.args[1].test("registered under your account")) {
+            this.handler.sendEvent({
+                'identifier' : 'ReceiveNickservRegistrationComplete'
+            });
         }
         
     }
@@ -402,7 +437,7 @@ IrcNickserv.prototype.onSendNickservRegister = function(e) {
     this.handler.sendEvent({
         'identifier' : 'SendPrivMsg',
         'destination' : this.nickserv,
-        'message' : 'register ' + e.domain + ' ' + e.nickname
+        'message' : 'REGISTER ' + e.domain + ' ' + e.nickname
     });
 };
 IrcNickserv.prototype.onSendNickservDisconnectGhost = function(e) {

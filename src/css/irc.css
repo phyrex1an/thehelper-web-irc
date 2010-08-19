@@ -1,71 +1,113 @@
 #ircchat{
-    width: 800px;
-    height: 500px;
-    margin-bottom: 10px;
-    position:relative;
+    display: none;
+    height: 2em;
+    position: fixed;
+    bottom: 0;
+    right: 0;
     margin: 0 auto;
+    padding: 0px;
     border: 1px solid black;
+    background-color: white;
+}
+
+#irchat form.login {
+    display:none;
+    padding:0;
+    margin:0;
+}
+
+#ircchat form.login fieldset {
+    padding:0;
+    margin:0;
+    border:none;
+}
+
+#ircchat form.login legend {
+    position:static;
 }
 
 #ircchat .channels {
-    margin:0;
+    margin:0 25px 0 0;
     padding:0;
 }
 
 #ircchat .channels .channel {
-    float: left;
+    margin: 0;
+    padding: 0;
+    position:relative;
+    float:left;
+}
+
+#ircchat .channels li {
     list-style:none;
+}
+
+#ircchat .channels .channel .title {
+    height: 2em;
+    padding:0 5px;
+    margin:0;
+    border: 1px solid black;
+}
+
+#ircchat .close:after {
+    font-weight: normal;
+    content: "x";
+}
+
+#ircchat .channels .channel .chat-area {
+    position:absolute;
+    bottom:2em;
+    background-color:white;
+    right:-1px;
+    width:400px;
+    height:200px;
+    border: 1px solid black;
+}
+
+#ircchat .channels .channel .chat-area .messages {
+    margin:0;
+    padding: 0;
+    width: 250px;
+    height: 160px;
+    float:left;
+    overflow: auto;
+}
+
+#ircchat .chat-message {
+    margin-left: 2px;
+}
+
+#ircchat .chat-message .user {
+    margin-right: 3px;
+    font-weight: bold;
+}
+#ircchat .chat-message .user:after {
+    content: ":";
+}
+
+#ircchat .channels .channel .chat-area .users {
+    margin:0;
+    padding:0;
+    width: 150px;
+    height: 160px;
+    float:left;
+    overflow: auto;
+}
+
+#ircchat .input-zone {
+    clear:both;
+    padding: 2px;
 }
 
 /* Hide all elements in the channel list */
 #ircchat .channels .channel > * {
     display:none;
 }
-/* and the current tab */
+/* except the current tab */
 #ircchat .channels .channel.current > * {
     display:block;
 }
-/* except the titles */
+/* and the titles */
 #ircchat .channels .channel .title {
     display:inline;
-    height: 20px;
-    padding:0 5px;
-    margin:0;
-    border: 1px solid black;
-}
-
-#ircchat .channels .channel .messages, #ircchat .channels .channel .users {
-    height: 460px;
-    overflow-y: auto;
-    margin:0;
-    padding:0;
-    position: absolute;
-}
-
-#ircchat .channels .channel .messages {
-    width: 600px;
-    left: 0;
-}
-
-#ircchat .channels .channel .messages:last-child {
-    width: 800px;
-}
-
-#ircchat .channels .channel .messages li {
-    margin: 2px 0;
-}
-
-#ircchat .channels .channel .messages .chat-message .user{
-    font-weight: bold;
-    padding:0 5px;
-}
-
-#ircchat .channels .channel .users {
-    width: 200px;
-    left: 600px;
-}
-
-#ircchat .input-zone {
-    padding-top: 480px;
-    height: 20px;
 }
