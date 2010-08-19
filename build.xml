@@ -22,8 +22,8 @@
    
 
    <fileset id="js.lib.files" dir="${LIB_DIR}" casesensitive="yes">
-      <include name="APE_JSF/Build/uncompressed/apeClientJS.js"/>
-      <include name="jquery/dist/jquery.js"/>
+      <!-- <include name="APE_JSF/Build/uncompressed/apeClientJS.js"/>
+      <include name="jquery/dist/jquery.js"/> -->
    </fileset>
 
    <fileset id="js.src.files" dir="${SOURCE_DIR}/js" casesensitive="yes">
@@ -106,7 +106,7 @@
          <fileset dir="${BUILD_DIR}/js" includes="main.js"/>
          <srcfile/>
          <arg line="-o"/>            
-         <mapper type="glob" from="*.js" to="${BUILD_DIR}/js/*.compress.js"/> 
+         <mapper type="glob" from="*.js" to="${BUILD_DIR}/js/*.js"/> 
          <targetfile/>
       </apply>
       <echo>JavaScript Compression Done</echo>
@@ -118,7 +118,7 @@
          <fileset dir="${BUILD_DIR}/css" includes="main.css"/>
          <srcfile/>
          <arg line="-o"/>
-         <mapper type="glob" from="*.js" to="${BUILD_DIR}/js/*.compress.css"/>
+         <mapper type="glob" from="*.css" to="${BUILD_DIR}/css/*.css"/>
          <targetfile/>
       </apply>
       <echo>CSS Compression Done</echo>
