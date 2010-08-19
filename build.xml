@@ -22,6 +22,7 @@
    
 
    <fileset id="js.lib.files" dir="${LIB_DIR}" casesensitive="yes">
+      <exclude name="**"/>
       <!-- <include name="APE_JSF/Build/uncompressed/apeClientJS.js"/>
       <include name="jquery/dist/jquery.js"/> -->
    </fileset>
