@@ -78,7 +78,7 @@ IrcChatEventProxy.prototype.receiveCloseChat = function(e) {
 IrcChatEventProxy.prototype.receiveSelfMessage = function(e) {
     var channelName = e['channelName'];
     var message = e['message'];
-    this.irc.addMessage(channelName, new IrcMessage(new IrcChannelUser(this.irc.username), message)); // TODO: Use this user name
+    this.irc.addMessage(channelName, new IrcMessage(new IrcChannelUser(this.irc.username), message));
 };
 
 IrcChatEventProxy.prototype.receiveOtherMessage = function(e) {
@@ -108,7 +108,12 @@ IrcChatEventProxy.prototype.receiveDoJoinChannel = function(e) {
 };
 
 IrcChatEventProxy.prototype.receiveDoPartChannel = function(e) {
-    this.irc.userPartsChannel(e.channel, IrcChannelUser.fromHostString(e.user), e.message);
+    var user = IrcChannelUser.fromHostString(e.user);
+    if (user.name() == this.irc.username) {
+        // TODO: We already do this on CloseChat, perhaps that is stupid?
+    } else {
+        this.irc.userPartsChannel(e.channel, user, e.message);
+    }
 };
 
 IrcChatEventProxy.prototype.receiveDoQuit = function(e) {
