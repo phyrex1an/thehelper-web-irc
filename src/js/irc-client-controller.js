@@ -117,7 +117,7 @@ IrcChatEventProxy.prototype.receiveDoPartChannel = function(e) {
 };
 
 IrcChatEventProxy.prototype.receiveDoQuit = function(e) {
-    this.irc.userQuits(ChannelUser.fromHostString(e.user), e.message);
+    this.irc.userQuits(IrcChannelUser.fromHostString(e.user), e.message);
 };
 
 // This is a receive only event
