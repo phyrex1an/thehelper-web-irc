@@ -34,6 +34,16 @@ IrcServerController.prototype.onCloseChat = function(event) {
         this.handler.part(event.channelName, "");
     }
 };
+IrcServerController.prototype.cleanUsername = function(username) {
+    var newName = username.trim().replace(/\s+/g, "_");
+    newName = newName.replace(/^[^\x41-\x7D]*/, "");
+    newName = newName.replace(/[^-\d\x41-\x7D]*/g, "");
+    if (!newName.test(/^[\x41-\x7D][-\d\x41-\x7D]*$/)) {
+        newName = "Guest";
+    }
+    return newName;
+};
+
 IrcServerController.prototype.onLogin = function(event) {
     var socket = new Ape.sockClient(6667, 'irc.thehelper.net', false);
     var handler = new IRCHandler();
@@ -41,7 +51,7 @@ IrcServerController.prototype.onLogin = function(event) {
     var irc = new IRCClient(handler, socket);
     new IRCPingClient(handler);
     new IrcNickserv(handler);
-    var username = event.username;
+    var username = this.cleanUsername(event.username);
     var password = event.password;
     var self = this;
     handler.registerEventHandler(new EventToProxy(this.proxy));
@@ -51,6 +61,7 @@ IrcServerController.prototype.onLogin = function(event) {
          'sendPass',  'onReceiveMODE',
          'onReceiveNickservNotRegistered',
          'onReceiveNickservPasswordAccepted',
+         'onReceiveNickservFail',
          'onReceiveNickservRegistrationComplete'],
         {
             'Ident' : function(e, d, s) {
@@ -59,7 +70,7 @@ IrcServerController.prototype.onLogin = function(event) {
                     if (s.auths <= 1) {
                         return 'Ident';
                     }
-//                    handler.pass('webchat'); // This is the SERVER password, not the user one
+                    // handler.pass('webchat'); // This is the SERVER password, not the user one
                     handler.ident(username, 'webchat', 'irc.thehelper.net', 'webchat');
                     handler.nick(username);
                     return 'Mode';
@@ -95,9 +106,13 @@ IrcServerController.prototype.onLogin = function(event) {
                     s.irc.registerNick(username, 'www.thehelper.net');
                     return 'WaitingForRegistration';
                 } else if (e=='onReceiveNickservPasswordAccepted') {
-                    s.proxy.sendAll({'method':'LoginSuccess'});
+                    s.proxy.sendAll({'method':'LoginSuccess', 'username':username});
                     handler.join('#thehelper');
                     return 'JoinedChannel';
+                } else if(e=='onReceiveNickservFail') {
+                    s.proxy.sendAll({'method':'LoginFail'});
+                    handler.quit();
+                    return null;
                 }
                 return 'Identifying';
             },

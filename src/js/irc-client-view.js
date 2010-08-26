@@ -42,7 +42,9 @@ IrcChatGroupView.prototype.update = function(c, e) {
         this.disable();
     } else if (e=='IsLoggedIn') {
         this.loggedIn();
-    };
+    } else if (e=='FailedLogin') {
+        this.enable();
+    }
 };
 
 var IrcChatListView = function(list, proxy) {

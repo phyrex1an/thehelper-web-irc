@@ -63,10 +63,17 @@ IrcChatGroup.prototype.login = function(username, password) {
     this.isLoggingIn = true;
     this.notifyObservers('IsLoggingIn');
 };
-IrcChatGroup.prototype.loginSuccess = function() {
+IrcChatGroup.prototype.loginSuccess = function(username) {
     this.isLogginIn = false;
     this.isLoggedIn = true;
+    this.username = username;
     this.notifyObservers('IsLoggedIn');
+};
+IrcChatGroup.prototype.loginFail = function() {
+    this.isLoggingIn = false;
+    this.isLoggedIn = false;
+    this.username = "";
+    this.notifyObservers('FailedLogin');
 };
 IrcChatGroup.prototype.setCurrent = function(channelName) {
     this.chatList.setCurrent(channelName);

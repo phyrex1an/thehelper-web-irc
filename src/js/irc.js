@@ -453,9 +453,8 @@ IrcNickserv.prototype.onReceiveNOTICE = function(e) {
                 'nick' : e.args[0]
             });
         } else if (e.args[1] == "This didn't work.") {
-            // TODO: This might happen on a failed login too
             this.handler.sendEvent({
-                'identifier' : 'NickservUnableToRegister',
+                'identifier' : 'ReceiveNickservFail',
                 'nick' : e.args[0]
             });
         } else if (e.args[1] == "Password accepted - you are now recognized." ) {

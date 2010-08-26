@@ -58,7 +58,11 @@ IrcChatEventProxy.prototype.receiveLogin = function(e) {
 };
 
 IrcChatEventProxy.prototype.receiveLoginSuccess = function(e) {
-    this.irc.loginSuccess();
+    this.irc.loginSuccess(e.username);
+};
+
+IrcChatEventProxy.prototype.receiveLoginFail = function(e) {
+    this.irc.loginFail();
 };
 
 IrcChatEventProxy.prototype.receiveSwitchChat = function(e) {
