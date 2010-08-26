@@ -83,10 +83,13 @@ IrcChatEventProxy.prototype.receiveSelfMessage = function(e) {
 
 IrcChatEventProxy.prototype.receiveOtherMessage = function(e) {
     var channelName = e['channelName'];
-    var user = e['user'];
+    var user = IrcChannelUser.fromHostString(e.user)
     var message = e['message'];
-    // TODO: Handle the first message in private chat case, somewhere.
-    this.irc.addMessage(channelName, new IrcMessage(IrcChannelUser.fromHostString(user), message));
+    // If this is a private message then the channel is equal to the sender
+    if (channelName == this.irc.username) {
+        channelName = user.name();
+    }
+    this.irc.addMessage(channelName, new IrcMessage(user, message));
 };
 
 
@@ -143,7 +146,9 @@ IrcChatEventProxy.prototype.receiveUserChangedNick = function(e) {
 };
 
 IrcChatEventProxy.prototype.receiveJoinChannel = function(e) {
-    // Empty on purpose. No client side resonse.
+    if (e.channelName[0] != "#") { // TODO: Find a better way than name matching
+        this.irc.add(new IrcChannel(e.channelName));
+    }
 };
 
 IrcChatEventProxy.prototype.sendToServer = function(event) {

@@ -3,10 +3,10 @@ $(document).ready(function() {
     var ape = new APE.Client();
     root.css('display', 'block');
     $('p.notice', root).html('Connecting to server');
-    $('form.login', root).css('display', 'block');
 
     ape.addEvent('ready', function() {
         $('p.notice', root).remove();
+        $('form.login', root).css('display', 'block');
         var proxy = new IrcClientProxy(ape.core);
         proxy.addObserver(new IrcClientController(proxy, root));
         var listener = function(raw, pipe) {
