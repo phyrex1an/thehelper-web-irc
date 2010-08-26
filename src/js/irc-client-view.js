@@ -252,7 +252,9 @@ IrcVirtualChannelView.prototype = new IrcChatView();
 var IrcMessageView = function(message) {
     this.html = $('<li class="chat-message">');
     this.html.append($('<span class="user">').text(message.from.name()));
-    this.html.append($('<span class="body">').text(message.content));
+    var content = $('<div/>').text(message.content).html();
+    content = content.replace(/\b(([\w-]+:\/\/?|www[.])[^\s()<>]+(?:\([\w\d]+\)|([^[:punct:]\s]|\/)))/g, '<a href="$1">$1</a>');
+    this.html.append($('<span class="body">').html(content));
 };
 
 var IrcChannelUserView = function(user, proxy) {
