@@ -152,17 +152,21 @@ IrcChatList.unhashify = function(hash) {
     return n;
 };
 IrcChatList.prototype.add = function(chat) {
-    // TODO: Check if chat is in list
-    this.chats.push(chat);
-    this.notifyObservers({'add':chat});
-    if (this.chats.length==1) {
-        this.setCurrent(chat.name());
+    if (this.getChannel(chat.name()) == null) {
+        this.chats.push(chat);
+        this.notifyObservers({'add':chat});
+        if (this.chats.length==1) {
+            this.setCurrent(chat.name());
+        }
     }
 };
 IrcChatList.prototype.remove = function(channelName) {
     var l = this.chats.length;
     for (var i=0; i<l; i++) {
         if (this.chats[i].name() == channelName) {
+            if (channelName == this.current) {
+                this.current = "";
+            }
             this.chats.splice(i,1);
             this.notifyObservers({'remove':channelName});
             break;
@@ -212,7 +216,7 @@ IrcChatList.prototype.addMessage = function(channelName, msg) {
         var newChannel = new IrcPrivateChat(msg.from);
         self.add(newChannel);
         return newChannel;
-    })
+    });
     channel.addMessage(msg);
 };
 IrcChatList.prototype.addLogMessage = function(channelName, msg) {

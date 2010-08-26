@@ -29,7 +29,13 @@ IrcChatGroupView.prototype.doLogin = function() {
     this.proxy.login($('#chatUsername', this.root).attr('value'), $('#chatPassword', this.root).attr('value'));
 };
 IrcChatGroupView.prototype.loggedIn = function() {
-    this.root.html(this.chatList.html);
+    this.root.html('')
+        .append(this.chatList.html)
+        .append('<div class="menu"><h2>Actions</h2><ul class="options"><li class="join">#thehelper</li></ul></div>');
+    var self = this;
+    $('.options .join', this.root).click(function() {
+        self.proxy.joinChannel($(this).html());
+    });
 };
 IrcChatGroupView.prototype.update = function(c, e) {
     if (e=='IsLogginIn') {
@@ -81,7 +87,8 @@ IrcMessageListView.prototype.update = function(l, message) {
 };
 
 
-var IrcUserListView = function(list) {
+var IrcUserListView = function(list, proxy) {
+    this.proxy = proxy;
     list.addObserver(this);
     this.html = $('<ul class="users">');
     var l = list.users.length;
@@ -90,7 +97,7 @@ var IrcUserListView = function(list) {
     }
 };
 IrcUserListView.prototype.addUser = function(user) {
-    this.html.append((new IrcChannelUserView(user)).html);    
+    this.html.append((new IrcChannelUserView(user, this.proxy)).html);    
 };
 IrcUserListView.prototype.removeUser = function(user) {
     $('li', this.html).filter(function(index) {
@@ -192,7 +199,7 @@ var IrcChannelView = function(chat, proxy) {
     this.makeClose();
     this.makeTitle(chat.name());
     this.addComponent(new IrcMessageListView(chat.messages));
-    this.addComponent(new IrcUserListView(chat.users));
+    this.addComponent(new IrcUserListView(chat.users, this.proxy));
     this.makeForm();
 };
 IrcChannelView.prototype = new IrcChatView();
@@ -215,7 +222,15 @@ var IrcMessageView = function(message) {
     this.html.append($('<span class="body">').text(message.content));
 };
 
-var IrcChannelUserView = function(user) {
+var IrcChannelUserView = function(user, proxy) {
+    this.proxy = proxy;
     this.html = $('<li>');
     this.html.text(user.name());
+    var self = this;
+    this.html.click(function() {
+        self.click();
+    });
+};
+IrcChannelUserView.prototype.click = function() {
+    this.proxy.joinChannel(this.html.html());
 };

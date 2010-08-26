@@ -63,11 +63,19 @@ IRCHandler.prototype.connect = function(hostname, port, socket) {
     });
 };
 
-IRCHandler.prototype.ident = function(nickname, flags, realname) {
+IRCHandler.prototype.pass = function(pass) {
+    this.sendEvent({
+        'identifier' : 'SendPass',
+        'password'   : pass 
+    });
+};
+
+IRCHandler.prototype.ident = function(nickname, hostname, servername, realname) {
     this.sendEvent({
         'identifier' : 'SendIdent',
         'nickname' : nickname,
-        'modes' : flags,
+        'hostname' : hostname,
+        'servername' : servername,
         'realname' : realname
     });
 };
@@ -85,6 +93,20 @@ IRCHandler.prototype.ctcp = function(target, message, rep) {
         'destination' : target,
         'command' : command,
         'rep' : rep
+    });
+};
+
+IRCHandler.prototype.mode = function(target, mode) {
+    this.sendEvent({
+        'identifier' : 'SendMODE',
+        'target' : target,
+        'mode' : mode
+    });
+};
+
+IRCHandler.prototype.away = function() {
+    this.sendEvent({
+        'identifier':'SendAWAY'
     });
 };
 
@@ -185,7 +207,7 @@ IRCClient = function(handler, socket) {
         this.handler.sendEvent({
             'identifier':'Send',
             'type':'USER',
-            'payload':e.nickname + " " + e.modes + " :" + e.realname
+            'payload':e.nickname + " " + e.hostname + " " + e.servername + " :" + e.realname
         });
     };
 
@@ -202,6 +224,22 @@ IRCClient = function(handler, socket) {
             'identifier':'Send',
             'type':'NICK',
             'payload':e.nickname
+        });
+    };
+    
+    this.onSendMODE = function(e) {
+        this.handler.sendEvent({
+            'identifier':'Send',
+            'type': 'MODE',
+            'payload': e.target + " " + e.mode
+        });
+    };
+
+    this.onSendAWAY = function(e) {
+        this.handler.sendEvent({
+            'identifier': 'Send',
+            'type':'AWAY',
+            'payload':''
         });
     };
 
@@ -401,9 +439,9 @@ var IrcNickserv = function(handler) { // TODO: Rename to IRCNickserv
 IrcNickserv.prototype = new Object();
 IrcNickserv.prototype.onSendNickservIdentify = function(e) {
     this.handler.sendEvent({
-        'identifier' : 'SendPrivMsg',
-        'destination' : this.nickserv,
-        'message' : 'IDENTIFY ' + e.password
+        'identifier' : 'Send',
+        'type' : this.nickserv,
+        'payload' : 'IDENTIFY ' + e.password
     });
 };
 IrcNickserv.prototype.onReceiveNOTICE = function(e) {

@@ -25,7 +25,9 @@ IrcServerController.prototype.onSelfMessage = function(event) {
     this.handler.privMsg(event.channelName, event.message);
 };
 IrcServerController.prototype.onJoinChannel = function(event) {
-    this.handler.join(event.channelName);
+    if (event.channelName.test("^#")) { // TODO: Find a better way to join channels than channel name matching
+        this.handler.join(event.channelName);
+    }
 };
 IrcServerController.prototype.onCloseChat = function(event) {
     if (event.channelName.test("^#")) { // TODO: Find a better way to send part messages than by channel name matching.
@@ -45,34 +47,45 @@ IrcServerController.prototype.onLogin = function(event) {
     handler.registerEventHandler(new EventToProxy(this.proxy));
 
     handler.registerEventHandler(new FSM(
-        ['onOpen', 'onReceiveNOTICE', 'onReceive433', 
-         'sendPass', 
+        ['onReceiveNOTICE', 'onReceive433', 
+         'sendPass',  'onReceiveMODE',
          'onReceiveNickservNotRegistered',
          'onReceiveNickservPasswordAccepted',
          'onReceiveNickservRegistrationComplete'],
         {
             'Ident' : function(e, d, s) {
-                if (e == 'onOpen') {
-                    handler.sendEvent({
-                        'identifier' : 'SendPass',
-                        'password'   : 'webchat' // This is the SERVER password, not the user one
-                    });
-                    handler.ident(username, '8 *', username);
+                if (e == 'onReceiveNOTICE' && d.args[0] == 'AUTH') {
+                    s.auths++;
+                    if (s.auths <= 1) {
+                        return 'Ident';
+                    }
+//                    handler.pass('webchat'); // This is the SERVER password, not the user one
+                    handler.ident(username, 'webchat', 'irc.thehelper.net', 'webchat');
                     handler.nick(username);
+                    return 'Mode';
+                }
+                return 'Ident';
+            },
+            'Mode' : function(e, d, s) {
+                if (e == 'onReceiveMODE') {
+                    handler.mode(username, "+i");
                     return 'Nick';
                 }
+                return 'Mode';
             },
             'Nick' : function(e, d, s) {
-                if (e=='onReceiveNOTICE' && d.prefix.test("^NickServ!")) {
+                if (e=='onReceiveNOTICE' && d.prefix.test("^NickServ!") && d.args[1].test("^please choose a different nick.")) {
                     // TODO: Sometimes nickserv seems to ignore this message.
                     // I have no idea why.
                     s.irc.identify(password);
+                    s.irc.away();
                     return 'Identifying';
                 } else if (e=='onReceive433') {
                     //s.irc.ghostNick();
                     //s.irc.disconnectGhost();
                     return 'DisconnectingGhost';
                 }
+                return 'Nick';
             },
             'DisconnectingGhost' : function(e, d, s) {
                 // TODO
@@ -86,18 +99,20 @@ IrcServerController.prototype.onLogin = function(event) {
                     handler.join('#thehelper');
                     return 'JoinedChannel';
                 }
+                return 'Identifying';
             },
             'WaitingForRegistration' : function(e, d, s) {
                 if (e=='onReceiveNickservRegistrationComplete') {
                     s.irc.identify(password);
                     return 'Identifying';
                 }
+                return 'WaitingForRegistration';
             },
             'JoinedChannel' : function(e, d, s) {
                 // TODO: ...
             }
         }, 'Ident',
-        {'irc':handler,'proxy':this.proxy}));
+        {'irc':handler,'proxy':this.proxy, 'auths': 0}));
 };
 
 var EventToProxy = function(proxy) {
