@@ -272,7 +272,10 @@ IrcMessageList.unhashify = function(hash) {
 IrcMessageList.prototype = new Observable();
 IrcMessageList.prototype.add = function(message) {
     this.messages.push(message);
-    this.notifyObservers(message);
+    this.notifyObservers({'message':message});
+};
+IrcMessageList.prototype.current = function() {
+    this.notifyObservers({'visible':true});
 };
 
 var IrcUserList = function() {
@@ -336,6 +339,7 @@ IrcChat.prototype.addMessage = function(message) {
 IrcChat.prototype.current = function(isCurrent) {
     this.isCurrent = isCurrent;
     this.notifyObservers({'current':isCurrent});
+    this.messages.current();
 };
 IrcChat.prototype.setTitle = function(title) {
     this.notifyObservers({'title':title});

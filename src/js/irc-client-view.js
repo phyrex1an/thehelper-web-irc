@@ -88,18 +88,35 @@ IrcChatListView.prototype.update = function(l, e) {
 };
 
 var IrcMessageListView = function(list) {
+    this.onBottom = true;
     list.addObserver(this);
     this.html = $('<ol class="messages">');
     var l = list.messages.length;
     for(var i = 0; i<l; i++) {
-        this.addMessage(list.messages[i]);
+        this.addMessage(list.messages[i], true);
+    }
+    var self = this;
+    this.html.scroll(function() {
+        self.onBottom = false;
+    });
+};
+IrcMessageListView.prototype.addMessage = function(message, noscroll) {
+    // Only scroll to the bottom if we are either hidden or at the bottom already
+    this.onBottom = this.onBottom || (this.html.outerHeight() <= 0) || (this.html[0].scrollHeight - this.html.scrollTop() == this.html.outerHeight());
+    this.html.append((new IrcMessageView(message)).html);
+    if (!noscroll && this.onBottom) {
+        this.toBottom();
     }
 };
-IrcMessageListView.prototype.addMessage = function(message) {
-    this.html.append((new IrcMessageView(message)).html);
+IrcMessageListView.prototype.update = function(l, event) {
+    if (typeof event.message != "undefined") {
+        this.addMessage(event.message, false);
+    } else if (typeof event.visible != "undefined" && event.visible && this.onBottom) {
+        this.toBottom();
+    }
 };
-IrcMessageListView.prototype.update = function(l, message) {
-    this.addMessage(message);
+IrcMessageListView.prototype.toBottom = function() {
+    this.html.animate({scrollTop: this.html[0].scrollHeight});
 };
 
 
