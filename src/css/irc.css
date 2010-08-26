@@ -82,17 +82,20 @@
     overflow: auto;
 }
 
-#ircchat .chat-message {
+#ircchat .chat-message, #ircchat .action-message {
     margin-left: 2px;
 }
 
-#ircchat .chat-message .user {
+#ircchat .chat-message .user, #ircchat .action-message .user {
     margin-right: 3px;
     font-weight: bold;
 }
 #ircchat .chat-message .user:after {
     content: ":";
 }
+#ircchat .action-message .user:before {
+    content: "***";
+};
 
 #ircchat .channels .channel .chat-area .users {
     width: 150px;

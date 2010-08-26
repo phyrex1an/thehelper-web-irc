@@ -90,9 +90,10 @@ IrcChatEventProxy.prototype.receiveCloseChat = function(e) {
 IrcChatEventProxy.prototype.receiveSelfMessage = function(e) {
     var channelName = e['channelName'];
     var message = e['message'];
-    this.irc.addMessage(channelName, new IrcMessage(new IrcChannelUser(this.irc.username), message));
+    this.irc.addMessage(channelName, new IrcUserMessage(new IrcChannelUser(this.irc.username), message));
 };
 
+// TODO: Duplication between receiveOtherMessage and receiveMessageAction
 IrcChatEventProxy.prototype.receiveOtherMessage = function(e) {
     var channelName = e['channelName'];
     var user = IrcChannelUser.fromHostString(e.user)
@@ -101,7 +102,17 @@ IrcChatEventProxy.prototype.receiveOtherMessage = function(e) {
     if (channelName == this.irc.username) {
         channelName = user.name();
     }
-    this.irc.addMessage(channelName, new IrcMessage(user, message));
+    this.irc.addMessage(channelName, new IrcUserMessage(user, message));
+};
+IrcChatEventProxy.prototype.receiveMessageAction = function(e) {
+    var channelName = e['channelName'];
+    var user = IrcChannelUser.fromHostString(e.user)
+    var message = e['message'];
+    // If this is a private message then the channel is equal to the sender
+    if (channelName == this.irc.username) {
+        channelName = user.name();
+    }
+    this.irc.addMessage(channelName, new IrcActionMessage(user, message));
 };
 
 

@@ -416,18 +416,54 @@ IrcVirtualChannel.prototype.name = function() {
     return this._name;
 };
 IrcVirtualChannel.prototype.addLogMessage = function(messageContent) {
-    this.addMessage(new IrcMessage(this.messageUser, messageContent));
+    this.addMessage(new IrcUserMessage(this.messageUser, messageContent));
 };
 IrcVirtualChannel.prototype.view = function(proxy) {
     return new IrcVirtualChannelView(this, proxy);
 };
 
-var IrcMessage = function(from, content) {
+var IrcMessage = function() {}
+IrcMessage.unhashify = function(hash) {
+    var subType;
+    switch (hash.hashType) {
+    case 'IrcUserMessage':
+        subType = IrcUserMessage;
+        break;
+    case 'IrcActionMessage':
+        subType = IrcActionMessage;
+        break;
+    default:
+        throw new Error("Unrecognized case " + hash.hashType);
+    }
+    var result = subType.unhashify(hash);
+    result.from = IrcChannelUser.unhashify(hash.from);
+    result.content = hash.content;
+    return result;
+};
+
+var IrcUserMessage = function(from, content) {
+    this.hashType = 'IrcUserMessage';
     this.from = from;
     this.content = content;
 };
-IrcMessage.unhashify = function(hash) {
-    return new IrcMessage(IrcChannelUser.unhashify(hash.from), hash.content);
+IrcUserMessage.unhashify = function(hash) {
+    return new IrcUserMessage();
+};
+IrcUserMessage.prototype.view = function() {
+    return new IrcMessageView(this);
+};
+
+// TODO: Duplication from IrcMessage
+var IrcActionMessage = function(from, content) {
+    this.hashType = 'IrcActionMessage';
+    this.from = from;
+    this.content = content;
+};
+IrcActionMessage.unhashify = function(hash) {
+    return new IrcActionMessage();
+};
+IrcActionMessage.prototype.view = function() {
+    return new IrcActionMessageView(this);
 };
 
 var IrcChannelUser = function(name) {

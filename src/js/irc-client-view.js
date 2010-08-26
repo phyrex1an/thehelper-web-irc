@@ -103,7 +103,7 @@ var IrcMessageListView = function(list) {
 IrcMessageListView.prototype.addMessage = function(message, noscroll) {
     // Only scroll to the bottom if we are either hidden or at the bottom already
     this.onBottom = this.onBottom || (this.html.outerHeight() <= 0) || (this.html[0].scrollHeight - this.html.scrollTop() == this.html.outerHeight());
-    this.html.append((new IrcMessageView(message)).html);
+    this.html.append(message.view().html);
     if (!noscroll && this.onBottom) {
         this.toBottom();
     }
@@ -248,14 +248,19 @@ var IrcVirtualChannelView = function(chat, proxy) {
 };
 IrcVirtualChannelView.prototype = new IrcChatView();
 
-// Probably not needed, move functionality to the message list view instead
-var IrcMessageView = function(message) {
-    this.html = $('<li class="chat-message">');
-    this.html.append($('<span class="user">').text(message.from.name()));
-    var content = $('<div/>').text(message.content).html();
-    content = content.replace(/\b(([\w-]+:\/\/?|www[.])[^\s()<>]+(?:\([\w\d]+\)|([^[:punct:]\s]|\/)))/g, '<a href="$1">$1</a>');
-    this.html.append($('<span class="body">').html(content));
+
+function createMessageView(cssClass) {
+    return function(message) {
+        this.html = $('<li class="' + cssClass + '">');
+        this.html.append($('<span class="user">').text(message.from.name()));
+        var content = $('<div/>').text(message.content).html();
+        content = content.replace(/\b(([\w-]+:\/\/?|www[.])[^\s()<>]+(?:\([\w\d]+\)|([^[:punct:]\s]|\/)))/g, '<a href="$1">$1</a>');
+        this.html.append($('<span class="body">').html(content));
+    };
 };
+
+var IrcMessageView = createMessageView('chat-message');
+var IrcActionMessageView = createMessageView('action-message');
 
 var IrcChannelUserView = function(user, proxy) {
     this.proxy = proxy;

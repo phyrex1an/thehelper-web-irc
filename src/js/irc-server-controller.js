@@ -142,10 +142,11 @@ EventToProxy.prototype.onReceiveJOIN = function(e) {
 EventToProxy.prototype.onReceive353 = function(e) {
     this.proxy.sendAll({'method':'UsersInChannel','channelName':e.args[2],'userNames':e.args[3].trim().split(' ')});
 };
-EventToProxy.prototype.onReceivePRIVMSG = function(e) {
-    if (e.args[1][0] != '\0') {
-        this.proxy.sendAll({'method':'OtherMessage','channelName':e.args[0],'user':e.prefix, 'message':e.args[1]});
-    }
+EventToProxy.prototype.onReceiveONLYPRIVMSG = function(e) {
+    this.proxy.sendAll({'method':'OtherMessage','channelName':e.args[0],'user':e.prefix, 'message':e.args[1]});
+};
+EventToProxy.prototype.onReceiveACTION = function(e) {
+    this.proxy.sendAll({'method':'MessageAction','channelName':e.args[0],'user':e.prefix, 'message':e.args[1]});
 };
 EventToProxy.prototype.onReceivePART = function(e) {
     this.proxy.sendAll({'method':'DoPartChannel', 'user':e.prefix, 'channel':e.args[0], 'message':e.args[1]});

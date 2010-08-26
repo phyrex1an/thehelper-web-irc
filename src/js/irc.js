@@ -386,11 +386,12 @@ IRCClient = function(handler, socket) {
         var msg = e.args[1]
         if (msg.charCodeAt(0) == 1 && msg.charCodeAt(msg.length-1) == 1) {
             // It's a special command.
-            var args = [command.args[0]]
+            var args = [e.args[0]]
             var newargs = msg.slice(1, msg.length - 1).split(' ')
             var type = null;
             if (newargs[0] == 'ACTION') {
                 type = newargs.shift()
+                newargs = [newargs.join(' ')];
             }
             else {
                 type = 'CTCP'
@@ -400,9 +401,15 @@ IRCClient = function(handler, socket) {
                 args.push(newargs[i])
             }
             this.handler.sendEvent({
-                'identifier' : type,
+                'identifier' : 'Receive' + type,
                 'prefix' : e.prefix,
                 'args' : args
+            });
+        } else {
+            this.handler.sendEvent({
+                'identifier' : 'ReceiveONLYPRIVMSG',
+                'prefix' : e.prefix,
+                'args' : e.args
             });
         }
     };
