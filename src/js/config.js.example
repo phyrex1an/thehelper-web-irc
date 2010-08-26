@@ -1,9 +1,10 @@
 /***
  * APE JSF Setup
  */
-APE.Config.baseUrl = 'http://chat.thehelper.test/lib/APE_JSF'; //APE JSF 
-APE.Config.domain = 'chat.thehelper.test'; 
-APE.Config.server = 'chat.thehelper.test:6969'; //APE server URL
+// The address to the APE_JSF directory
+APE.Config.baseUrl = 'http://address.to/APE_JSF';
+APE.Config.domain = 'address.to'; 
+APE.Config.server = 'ape.address.to:6969'; //APE server URL
 
 APE.Config.scripts = [APE.Config.baseUrl + '/Build/uncompressed/apeCoreSession.js'];
 
