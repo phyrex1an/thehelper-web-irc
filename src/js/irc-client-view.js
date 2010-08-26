@@ -4,20 +4,40 @@ var IrcChatGroupView = function(chat, proxy, root) {
     this.chatList = new IrcChatListView(chat.chatList, proxy);
     this.root = root;
     chat.addObserver(this);
+
+    var self = this;
+    $('form', root).submit(function(e) { 
+        e.preventDefault();
+        self.doLogin();
+    });
+    this.root.append(this.chatList.html)
+        .append('<div class="menu"><h2>Actions</h2><ul class="options"><li class="join">#thehelper</li><li class="logout">Logout</li></ul></div>');
+    $('.options .join', this.root).click(function() {
+        self.proxy.joinChannel($(this).html());
+    });
+    $('.options .logout', this.root).click(function() {
+        self.proxy.logout();
+    });
     if (chat.isLoggedIn) {
-        this.loggedIn();
+        this.hideForm();
     } else {
+        this.displayForm();
         if (chat.isLoggingIn) {
             this.disable();
         } else {
             this.enable();
         }
-        var self = this;
-        $('form', root).submit(function(e) { 
-            e.preventDefault();
-            self.doLogin();
-        });
     }
+};
+IrcChatGroupView.prototype.displayForm = function() {
+    $('div.menu', this.root).hide();
+    this.chatList.html.hide();
+    $('form.login', this.root).show();
+};
+IrcChatGroupView.prototype.hideForm = function() {
+    $('div.menu', this.root).show();
+    this.chatList.html.show();
+    $('form.login', this.root).hide();
 };
 IrcChatGroupView.prototype.enable = function() {
     $('#chatPassword, input[type=submit]', this.root).removeAttr('disabled');
@@ -28,21 +48,15 @@ IrcChatGroupView.prototype.disable = function() {
 IrcChatGroupView.prototype.doLogin = function() {
     this.proxy.login($('#chatUsername', this.root).attr('value'), $('#chatPassword', this.root).attr('value'));
 };
-IrcChatGroupView.prototype.loggedIn = function() {
-    this.root.html('')
-        .append(this.chatList.html)
-        .append('<div class="menu"><h2>Actions</h2><ul class="options"><li class="join">#thehelper</li></ul></div>');
-    var self = this;
-    $('.options .join', this.root).click(function() {
-        self.proxy.joinChannel($(this).html());
-    });
-};
 IrcChatGroupView.prototype.update = function(c, e) {
     if (e=='IsLogginIn') {
         this.disable();
     } else if (e=='IsLoggedIn') {
-        this.loggedIn();
+        this.hideForm();
     } else if (e=='FailedLogin') {
+        this.enable();
+    } else if (e=='Logout') {
+        this.displayForm();
         this.enable();
     }
 };

@@ -72,8 +72,14 @@ IrcChatGroup.prototype.loginSuccess = function(username) {
 IrcChatGroup.prototype.loginFail = function() {
     this.isLoggingIn = false;
     this.isLoggedIn = false;
-    this.username = "";
     this.notifyObservers('FailedLogin');
+};
+IrcChatGroup.prototype.logout = function() {
+    this.password = "";
+    this.isLogginIn = false;
+    this.isLoggedIn = false;
+    this.chatList.empty();
+    this.notifyObservers('Logout');
 };
 IrcChatGroup.prototype.setCurrent = function(channelName) {
     this.chatList.setCurrent(channelName);
@@ -179,6 +185,11 @@ IrcChatList.prototype.remove = function(channelName) {
             break;
         };
     };
+};
+IrcChatList.prototype.empty = function() {
+    while(this.chats.length > 0) {
+        this.remove(this.chats[0].name());
+    }
 };
 IrcChatList.prototype.setCurrent = function(channelName) {
     var chat = this.safeGetChannel(channelName);

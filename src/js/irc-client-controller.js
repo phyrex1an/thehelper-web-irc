@@ -51,10 +51,18 @@ IrcChatEventProxy.prototype.login = function(username, password) {
     this.sendToServer({'method':'Login','username':username,'password':password});
 };
 
+IrcChatEventProxy.prototype.logout = function() {
+    this.sendToServer({'method':'Logout'});
+};
+
 IrcChatEventProxy.prototype.receiveLogin = function(e) {
     var username = e.username;
     var password = e.password;
     this.irc.login(username, password);
+};
+
+IrcChatEventProxy.prototype.receiveLogout = function(e) {
+    this.irc.logout();
 };
 
 IrcChatEventProxy.prototype.receiveLoginSuccess = function(e) {

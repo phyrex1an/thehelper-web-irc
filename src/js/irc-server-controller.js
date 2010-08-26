@@ -16,6 +16,9 @@ IrcServerController.prototype.onSetup = function(event) {
     }
     this.proxy.sendUser({"method":"Setup","irc":this.irc.hashify()}, event["_infos"]);
 };
+IrcServerController.prototype.onLogout = function(event) {
+    this.handler.quit();
+};
 IrcServerController.prototype.onDelUser = function(event) {
     if (this.isInitialized) {
         this.handler.quit("Closed all tabs");
