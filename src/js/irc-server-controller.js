@@ -49,9 +49,8 @@ IrcServerController.prototype.cleanUsername = function(username) {
 
 IrcServerController.prototype.onLogin = function(event) {
     var socket = new Ape.sockClient(6667, 'irc.thehelper.net', false);
-    var handler = new IRCHandler();
+    var handler = new IRCHandler('NickServ', socket);
     this.handler = handler;
-    var irc = new IRCClient(handler, socket);
     new IRCPingClient(handler);
     new IrcNickserv(handler);
     var username = this.cleanUsername(event.username);
