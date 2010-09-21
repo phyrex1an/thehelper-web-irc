@@ -1,22 +1,32 @@
-#ircchat{
-    display: none;
-    height: 2em;
-    position: fixed;
-    bottom: 0;
-    right: 0;
-    margin: 0 auto;
-    padding: 0px;
-    border: 1px solid black;
-    background-color: white;
-}
-
 #ircchat * {
     margin: 0;
     padding: 0;
 }
 
+#ircchat {
+    display: none;
+    height: 1.5em;
+    position: fixed;
+    bottom: 3px;
+    right: 3px;
+    margin: 0 auto;
+    padding: 0 1em;
+    border: 1px solid black;
+    -moz-border-radius:0.75em;
+    -webkit-border-radius:0.75em;
+    -opera-border-radius:0.75em;
+    -khtml-border-radius:0.75em;
+    border-radius:0.75em;
+    background-color: black;
+    color: grey;
+}
+
 #ircchat form.login {
     display:none;
+}
+
+#ircchat form.login input {
+    border-color: black;
 }
 
 #ircchat form.login fieldset {
@@ -32,14 +42,13 @@
 }
 
 #ircchat .menu h2 {
-
+    font-size: 1.5em;
 }
 
 #ircchat .menu .options {
-    background-color: white;
     display: none;
     position:absolute;
-    bottom: 2em;
+    bottom: 1.5em;
 }
 
 #ircchat .menu:hover .options {
@@ -55,24 +64,24 @@
 }
 
 #ircchat .channels .channel .title {
-    height: 2em;
+    font-size:1em;
+    vertical-align: middle;
     padding:0 5px;
-    border: 1px solid black;
 }
 
 #ircchat .close:after {
     font-weight: normal;
-    content: "x";
+    content: "X";
 }
 
 #ircchat .channels .channel .chat-area {
     position:absolute;
     bottom:2em;
     right:1px;
-    background-color:white;
     width:400px;
     height:200px;
     border: 1px solid black;
+    background-color:black;
 }
 
 #ircchat .channels .channel .chat-area .messages {
