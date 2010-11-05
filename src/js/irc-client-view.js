@@ -104,6 +104,7 @@ IrcMessageListView.prototype.addMessage = function(message, noscroll) {
     // Only scroll to the bottom if we are either hidden or at the bottom already
     this.onBottom = this.onBottom || (this.html.outerHeight() <= 0) || (this.html[0].scrollHeight - this.html.scrollTop() == this.html.outerHeight());
     this.html.append(message.view().html);
+    this.messageNotify();
     if (!noscroll && this.onBottom) {
         this.toBottom();
     }
@@ -117,6 +118,11 @@ IrcMessageListView.prototype.update = function(l, event) {
 };
 IrcMessageListView.prototype.toBottom = function() {
     this.html.animate({scrollTop: this.html[0].scrollHeight});
+};
+IrcMessageListView.prototype.messageNotify = function() {
+    var chat = this.html.parent().parent();
+    chat.addClass("alert");
+    setTimeout(function() { chat.removeClass("alert"); }, 500);
 };
 
 
@@ -178,7 +184,7 @@ IrcChatView.prototype.addComponent = function(c) {
 };
 IrcChatView.prototype.makeForm = function() {
     var form = $('<form class="input-zone" />');
-    form.append('<input type="text" class="input"/><input type="submit" value="Send" />');
+    form.append('<input type="text" class="input"/>');
     var input  = $('input[type=text]', form);
     var button = $('input[type=submit]', form);
     var t = this;
@@ -254,7 +260,7 @@ function createMessageView(cssClass) {
         this.html = $('<li class="' + cssClass + '">');
         this.html.append($('<span class="user">').text(message.from.name()));
         var content = $('<div/>').text(message.content).html();
-        content = content.replace(/\b(([\w-]+:\/\/?|www[.])[^\s()<>]+(?:\([\w\d]+\)|([^[:punct:]\s]|\/)))/g, '<a href="$1">$1</a>');
+        content = content.replace(/\b(([\w-]+:\/\/?|www[.])[^\s]+)/g, '<a href="$1">$1</a>');
         this.html.append($('<span class="body">').html(content));
     };
 };
