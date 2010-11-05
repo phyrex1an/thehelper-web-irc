@@ -11,14 +11,14 @@
     right: 3px;
     margin: 0 auto;
     padding: 0 1em;
-    border: 1px solid black;
+    border: 1px solid #5A7F97;
     -moz-border-radius:0.75em;
     -webkit-border-radius:0.75em;
     -opera-border-radius:0.75em;
     -khtml-border-radius:0.75em;
     border-radius:0.75em;
-    background-color: black;
-    color: grey;
+    background-color: #7192A8;
+    color: #4E4E4E;
 }
 
 #ircchat form.login {
@@ -50,7 +50,7 @@
     display: none;
     position:absolute;
     bottom: 1.5em;
-    background-color:black;
+    background-color: #7192A8;
 }
 
 #ircchat .menu:hover .options {
@@ -60,6 +60,20 @@
 #ircchat .channels .channel {
     float:left;
     position:relative;
+    border: 1px solid #5A7F97;
+    margin-left: 10px;
+    width: 13em;
+    text-align: center;
+    -moz-border-radius:0.75em;
+    -webkit-border-radius:0.75em;
+    -opera-border-radius:0.75em;
+    -khtml-border-radius:0.75em;
+    border-radius:0.75em;
+    background-color: #ffffff;
+}
+
+#ircchat .channels .channel.alert {
+    background-color: #FF6600;
 }
 
 #ircchat li {
@@ -79,16 +93,24 @@
 
 #ircchat .channels .channel .chat-area {
     position:absolute;
-    bottom:2em;
+    bottom:1.5em;
     right:-1px;
-    width:17em;
+    width:13em;
     height:20em;
-    border: 1px solid black;
-    background-color:black;
+    border: 1px solid #5A7F97;
+    -moz-border-radius: 0.75em 0.75em 0 0;
+    -webkit-border-radius:0.75em 0.75em 0 0;
+    -opera-border-radius:0.75em 0.75em 0 0;
+    -khtml-border-radius:0.75em 0.75em 0 0;
+    border-radius:0.75em 0.75em 0 0;
+    background-color:#7192A8;
 }
 
 #ircchat .channels .channel .chat-area .messages {
     overflow-y: auto;
+    overflow-x: hidden;
+    word-wrap: break-word;
+    text-align:left;
     height:90%;
 }
 
