@@ -209,7 +209,7 @@ IRCDecoder.prototype.parse = function(type, prefix, args) {
         }
     }
     switch (type) {
-    case 'PrivMsg':
+    case 'PRIVMSG':
         this.parsePrivMsg(prefix, args[0], args[1]);
         break;
     default:
@@ -224,34 +224,28 @@ IRCDecoder.prototype.parse = function(type, prefix, args) {
 
 IRCDecoder.prototype.parsePrivMsg = function(sender, receiver, message) {
     var type = null;
-    var event = null;
+    var event =  {
+        'sender' : sender,
+        'receiver' : receiver,
+        'prefix' : sender
+    };
     if (message.charCodeAt(0) == 1 && message.charCodeAt(message.length-1) == 1) {
         // It's a special command.
-        var args = [e.args[0]]
         var newargs = message.slice(1, message.length - 1).split(' ');
         if (newargs[0] == 'ACTION') {
             type = 'ACTION';
             newargs.shift()
-            event = {
-                'action' : newargs.join(' '),
-            };
+            event.action =  newargs.join(' ');
         }
         else {
             type = 'CTCP';
-            event = {
-                'args' : newargs
-            };
+            event.args = newargs;
         }
     } else {
         type = 'PRIVMSG';
-        event = {
-            'sender' : sender,
-            'receiver' : receiver,
-            'message' : message
-        };
+        event.message =  message;
     }
     event.identifier = 'Receive' + type;
-    event.prefix = prefix;
     this.handler.sendEvent(event);
 };
 
