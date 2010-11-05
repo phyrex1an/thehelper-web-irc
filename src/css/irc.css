@@ -42,13 +42,15 @@
 }
 
 #ircchat .menu h2 {
-    font-size: 1.5em;
+    font-size: 1em;
+    vertical-align: middle;
 }
 
 #ircchat .menu .options {
     display: none;
     position:absolute;
     bottom: 1.5em;
+    background-color:black;
 }
 
 #ircchat .menu:hover .options {
@@ -57,6 +59,7 @@
 
 #ircchat .channels .channel {
     float:left;
+    position:relative;
 }
 
 #ircchat li {
@@ -77,18 +80,16 @@
 #ircchat .channels .channel .chat-area {
     position:absolute;
     bottom:2em;
-    right:1px;
-    width:400px;
-    height:200px;
+    right:-1px;
+    width:17em;
+    height:20em;
     border: 1px solid black;
     background-color:black;
 }
 
 #ircchat .channels .channel .chat-area .messages {
-    width: 250px;
-    height: 160px;
-    float:left;
-    overflow: auto;
+    overflow-y: auto;
+    height:90%;
 }
 
 #ircchat .chat-message, #ircchat .action-message {
@@ -104,26 +105,25 @@
 }
 #ircchat .action-message .user:before {
     content: "***";
-};
+}
 
 #ircchat .channels .channel .chat-area .users {
-    width: 150px;
-    height: 160px;
-    float:left;
-    overflow: auto;
+    display: none;
+    overflow-y: auto;
 }
 
 #ircchat .input-zone {
     clear:both;
-    padding: 2px;
+    height:10%;
+    margin:auto;
 }
 
 /* Hide all elements in the channel list */
-#ircchat .channels .channel > * {
+#ircchat .channels .channel .chat-area {
     display:none;
 }
 /* except the current tab */
-#ircchat .channels .channel.current > * {
+#ircchat .channels .channel.current .chat-area {
     display:block;
 }
 /* and the titles */
