@@ -108,7 +108,7 @@ IRCHandler.prototype.part = function(channel, reason) {
 
 IRCHandler.prototype.quit = function(reason) {
     this.send('QUIT', '', reason);
-    this.closeConnection(); // TODO: Implement close
+    this.close(); // TODO: Implement close
 };
 
 IRCHandler.prototype.join = function(channel) {
