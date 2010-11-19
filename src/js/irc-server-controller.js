@@ -88,9 +88,13 @@ IrcServerController.prototype.onLogin = function(event) {
             },
             'Nick' : function(e, d, s) {
                 if (e=='onReceiveNOTICE' && d.prefix.test("^NickServ!") && d.args[1].test("^please choose a different nick.")) {
-                    // TODO: Sometimes nickserv seems to ignore this message.
-                    // I have no idea why.
-                    s.irc.identify(password);
+                    if (event.token) {
+                        s.irc.recognice(event.token);
+                    } else if (event.remember) {
+                        s.irc.remember(password);
+                    } else {
+                        s.irc.identify(password);
+                    }
                     s.irc.away();
                     return 'Identifying';
                 } else if (e=='onReceive433') {

@@ -140,6 +140,15 @@ IRCHandler.prototype.identify = function(password) {
     this.sendNickserv('IDENTIFY', password);
 };
 
+IRCHandler.prototype.remember = function(password) {
+    this.sendNickserv('REMEMBER', password);
+};
+
+IRCHandler.prototype.recognice = function(token) {
+    this.sendNickserv('RECOGNICE', token);
+};
+
+
 IRCHandler.prototype.registerNick = function(nick, domain) {
     this.sendNickserv('REGISTER', [nick, domain]);
 };

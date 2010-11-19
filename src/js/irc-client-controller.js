@@ -47,8 +47,12 @@ IrcChatEventProxy.prototype.joinChannel = function(channelName) {
     this.sendToServer({'method':'JoinChannel','channelName':channelName});
 };
 
-IrcChatEventProxy.prototype.login = function(username, password) {
-    this.sendToServer({'method':'Login','username':username,'password':password});
+IrcChatEventProxy.prototype.login = function(username, password, remember) {
+    this.sendToServer({'method':'Login','username':username,'password':password, 'remember':remember});
+};
+
+IrcChatEventProxy.prototype.recognice = function(username, token) {
+    this.sendToServer({'method':'Login','username':username,'password':'','token':token});
 };
 
 IrcChatEventProxy.prototype.logout = function() {
@@ -66,7 +70,7 @@ IrcChatEventProxy.prototype.receiveLogout = function(e) {
 };
 
 IrcChatEventProxy.prototype.receiveLoginSuccess = function(e) {
-    this.irc.loginSuccess(e.username);
+    this.irc.loginSuccess(e.username, e.token);
 };
 
 IrcChatEventProxy.prototype.receiveLoginFail = function(e) {
