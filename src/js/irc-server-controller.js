@@ -89,7 +89,7 @@ IrcServerController.prototype.onLogin = function(event) {
             'Nick' : function(e, d, s) {
                 if (e=='onReceiveNOTICE' && d.prefix.test("^NickServ!") && d.args[1].test("^please choose a different nick.")) {
                     if (event.token) {
-                        s.irc.recognice(event.token);
+                        s.irc.recognize(event.token);
                     } else if (event.remember) {
                         s.irc.remember(password);
                     } else {

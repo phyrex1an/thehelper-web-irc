@@ -144,8 +144,8 @@ IRCHandler.prototype.remember = function(password) {
     this.sendNickserv('REMEMBER', password);
 };
 
-IRCHandler.prototype.recognice = function(token) {
-    this.sendNickserv('RECOGNICE', token);
+IRCHandler.prototype.recognize = function(token) {
+    this.sendNickserv('RECOGNIZE', token);
 };
 
 

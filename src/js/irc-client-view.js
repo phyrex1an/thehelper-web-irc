@@ -27,7 +27,7 @@ var IrcChatGroupView = function(chat, proxy, root) {
         } else {
             this.enable();
             if ($.cookie("chattoken")) {
-                this.doRecognice();
+                this.doRecognize();
             }
         }
     }
@@ -51,8 +51,8 @@ IrcChatGroupView.prototype.disable = function() {
 IrcChatGroupView.prototype.doLogin = function() {
     this.proxy.login($('#chatUsername', this.root).attr('value'), $('#chatPassword', this.root).attr('value'), $('#chatRememberMe', this.root).attr('checked'));
 };
-IrcChatGroupView.prototype.doRecognice = function() {
-    this.proxy.recognice($('#chatUsername', this.root).attr('value'), $.cookie("chattoken"));
+IrcChatGroupView.prototype.doRecognize = function() {
+    this.proxy.recognize($('#chatUsername', this.root).attr('value'), $.cookie("chattoken"));
 };
 IrcChatGroupView.prototype.update = function(c, e) {
     if (e=='IsLogginIn') {

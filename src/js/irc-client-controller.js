@@ -51,7 +51,7 @@ IrcChatEventProxy.prototype.login = function(username, password, remember) {
     this.sendToServer({'method':'Login','username':username,'password':password, 'remember':remember});
 };
 
-IrcChatEventProxy.prototype.recognice = function(username, token) {
+IrcChatEventProxy.prototype.recognize = function(username, token) {
     this.sendToServer({'method':'Login','username':username,'password':'','token':token});
 };
 
