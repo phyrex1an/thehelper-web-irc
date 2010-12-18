@@ -64,7 +64,7 @@ IrcChatGroup.prototype.login = function(username, password) {
     this.notifyObservers('IsLoggingIn');
 };
 IrcChatGroup.prototype.loginSuccess = function(username) {
-    this.isLogginIn = false;
+    this.isLoggingIn = false;
     this.isLoggedIn = true;
     this.username = username;
     this.notifyObservers('IsLoggedIn');
