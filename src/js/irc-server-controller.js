@@ -17,7 +17,7 @@ IrcServerController.prototype.onSetup = function(event) {
     this.proxy.sendUser({"method":"Setup","irc":this.irc.hashify()}, event["_infos"]);
 };
 IrcServerController.prototype.onLogout = function(event) {
-    this.handler.quit();
+    this.handler.quit("Logging out");
 };
 IrcServerController.prototype.onDelUser = function(event) {
     if (this.isInitialized) {
@@ -117,7 +117,7 @@ IrcServerController.prototype.onLogin = function(event) {
                     return 'JoinedChannel';
                 } else if(e=='onReceiveNickservFail') {
                     s.proxy.sendAll({'method':'LoginFail'});
-                    handler.quit();
+                    handler.quit("Failed nickserv");
                     return null;
                 }
                 return 'Identifying';
@@ -156,4 +156,7 @@ EventToProxy.prototype.onReceivePART = function(e) {
 };
 EventToProxy.prototype.onReceiveQUIT = function(e) {
     this.proxy.sendAll({'method':'DoQuit', 'user':e.prefix, 'message':e.args[0]});
+};
+EventToProxy.prototype.onReceiveNickservToken = function(e) {
+    this.proxy.sendAll({'method':'DoSaveToken', 'token':e.token});
 };

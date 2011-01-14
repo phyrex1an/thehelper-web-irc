@@ -5,9 +5,9 @@ var IrcChatEventProxy = function(irc, proxy) {
     this.proxy = proxy;
 };
 
-IrcChatEventProxy.prototype.switchChat = function(channelName) {
+IrcChatEventProxy.prototype.maximizeChat = function(channelName) {
     this.sendToServer({
-        'method':'SwitchChat',
+        'method':'MaximizeChat',
         'channelName' : channelName
     });
 };
@@ -77,9 +77,9 @@ IrcChatEventProxy.prototype.receiveLoginFail = function(e) {
     this.irc.loginFail();
 };
 
-IrcChatEventProxy.prototype.receiveSwitchChat = function(e) {
+IrcChatEventProxy.prototype.receiveMaximizeChat = function(e) {
     var channelName = e['channelName'];
-    this.irc.setCurrent(channelName);
+    this.irc.maximizeChat(channelName);
 };
 
 IrcChatEventProxy.prototype.receiveMinimizeChat = function(e) {
@@ -148,6 +148,10 @@ IrcChatEventProxy.prototype.receiveDoPartChannel = function(e) {
 
 IrcChatEventProxy.prototype.receiveDoQuit = function(e) {
     this.irc.userQuits(IrcChannelUser.fromHostString(e.user), e.message);
+};
+
+IrcChatEventProxy.prototype.receiveDoSaveToken = function(e) {
+    this.irc.saveToken(e.token);
 };
 
 // This is a receive only event

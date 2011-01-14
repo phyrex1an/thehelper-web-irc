@@ -57,10 +57,10 @@ IrcChatGroup.unhashify = function(hash) {
     return n;
 };
 IrcChatGroup.prototype.login = function(username, password) {
-    this.isLogginIn = true;
+    this.isLoggedIn = false;
+    this.isLoggingIn = true;
     this.username = username;
     this.password = password;
-    this.isLoggingIn = true;
     this.notifyObservers('IsLoggingIn');
 };
 IrcChatGroup.prototype.loginSuccess = function(username) {
@@ -74,6 +74,9 @@ IrcChatGroup.prototype.loginFail = function() {
     this.isLoggedIn = false;
     this.notifyObservers('FailedLogin');
 };
+IrcChatGroup.prototype.saveToken = function(t) {
+    this.notifyObservers({'token' : t});
+}
 IrcChatGroup.prototype.logout = function() {
     this.password = "";
     this.isLogginIn = false;
@@ -81,8 +84,8 @@ IrcChatGroup.prototype.logout = function() {
     this.chatList.empty();
     this.notifyObservers('Logout');
 };
-IrcChatGroup.prototype.setCurrent = function(channelName) {
-    this.chatList.setCurrent(channelName);
+IrcChatGroup.prototype.maximizeChat = function(channelName) {
+    this.chatList.maximize(channelName);
 };
 IrcChatGroup.prototype.minimizeChat = function(channelName) {
     this.chatList.minimize(channelName);
@@ -161,7 +164,6 @@ IrcChatList.prototype = new Observable();
 IrcChatList.unhashify = function(hash) {
     var n = new IrcChatList();
     n.chats = unhashifyArray(hash.chats, IrcChat);
-    n.current = hash.current;
     return n;
 };
 IrcChatList.prototype.add = function(chat) {
@@ -169,7 +171,7 @@ IrcChatList.prototype.add = function(chat) {
         this.chats.push(chat);
         this.notifyObservers({'add':chat});
         if (this.chats.length==1) {
-            this.setCurrent(chat.name());
+            this.maximize(chat.name());
         }
     }
 };
@@ -177,9 +179,6 @@ IrcChatList.prototype.remove = function(channelName) {
     var l = this.chats.length;
     for (var i=0; i<l; i++) {
         if (this.chats[i].name() == channelName) {
-            if (channelName == this.current) {
-                this.current = "";
-            }
             this.chats.splice(i,1);
             this.notifyObservers({'remove':channelName});
             break;
@@ -191,20 +190,11 @@ IrcChatList.prototype.empty = function() {
         this.remove(this.chats[0].name());
     }
 };
-IrcChatList.prototype.setCurrent = function(channelName) {
-    var chat = this.safeGetChannel(channelName);
-    if (this.current) this.safeGetChannel(this.current).current(false);
-    this.current = chat.name();
-    chat.current(true);
+IrcChatList.prototype.maximize = function(channelName) {
+    this.safeGetChannel(channelName).current(true);
 };
 IrcChatList.prototype.minimize = function(channelName) {
-    if (this.current == channelName) {
-        this.safeGetChannel(this.current).current(false);
-        this.current = "";
-    }
-};
-IrcChatList.prototype.getCurrent = function() {
-    return this.current;
+    this.safeGetChannel(channelName).current(false);
 };
 IrcChatList.prototype.getChannel = function(channelName) {
     var l = this.chats.length;

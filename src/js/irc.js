@@ -43,9 +43,10 @@ IRCHandler.prototype.connect = function(hostname, port, socket) {
 
 IRCHandler.prototype.close = function() {
     this.connection.close();
-    this.connection.onConnect = null;
+    // TODO: Is this needed? onDisconnect can't be null on disconnect
+    /*this.connection.onConnect = null;
     this.connection.onDisconnect = null;
-    this.connection.onRead = null;
+    this.connection.onRead = null;*/
 };
 
 IRCHandler.prototype.sendRaw = function(raw) {
@@ -286,7 +287,6 @@ var IrcNickserv = function(handler) { // TODO: Rename to IRCNickserv
 IrcNickserv.prototype = new Object();
 IrcNickserv.prototype.onReceiveNOTICE = function(e) {
     if (e.prefix.test("^NickServ!")) {
-
         if (e.args[1] == "Your nick isn't registered.") {
             this.handler.sendEvent({
                 'identifier' : 'ReceiveNickservNotRegistered',
@@ -306,8 +306,12 @@ IrcNickserv.prototype.onReceiveNOTICE = function(e) {
             this.handler.sendEvent({
                 'identifier' : 'ReceiveNickservRegistrationComplete'
             });
+        } else if (e.args[1].test("^TOKEN: ")) {
+            this.handler.sendEvent({
+                'identifier' : 'ReceiveNickservToken',
+                'token' : e.args[1].split(": ")[1]
+            });
         }
-        
     }
 };
 IrcNickserv.prototype.onSendNickservDisconnectGhost = function(e) {

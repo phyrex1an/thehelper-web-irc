@@ -61,9 +61,13 @@ IrcChatGroupView.prototype.update = function(c, e) {
         this.hideForm();
     } else if (e=='FailedLogin') {
         this.enable();
+        $.cookie("chattoken", null);
     } else if (e=='Logout') {
         this.displayForm();
         this.enable();
+        $.cookie("chattoken", null);
+    } else if (e.token) {
+        $.cookie("chattoken", e.token, {'expires':30,'path':'/'});
     }
 };
 
@@ -209,7 +213,7 @@ IrcChatView.prototype.click = function(f) {
     if (this.chat.isCurrent) {
         this.proxy.minimizeChat(this.chat.name());
     } else {
-        this.proxy.switchChat(this.chat.name());
+        this.proxy.maximizeChat(this.chat.name());
     }
 };
 IrcChatView.prototype.update = function(c, m) {
