@@ -56,6 +56,9 @@ IrcServerController.prototype.onLogin = function(event) {
     var username = this.cleanUsername(event.username);
     var password = event.password;
     var self = this;
+    var ip = event['_infos'].ip;
+    var host = even['_infos'].ip;
+
     handler.registerEventHandler(new EventToProxy(this.proxy));
 
     handler.registerEventHandler(new FSM(
@@ -73,6 +76,7 @@ IrcServerController.prototype.onLogin = function(event) {
                         return 'Ident';
                     }
                     // handler.pass('webchat'); // This is the SERVER password, not the user one
+                    handler.webirc('th_WebIrc2', host, ip);
                     handler.ident(username, 'webchat', 'irc.thehelper.net', 'webchat');
                     handler.nick(username);
                     return 'Mode';

@@ -69,6 +69,10 @@ IRCHandler.prototype.pass = function(password) {
     this.send('PASS', password);
 };
 
+IRCHandler.prototype.webirc = function(pass, host, ip) {
+    this.send('WEBIRC', [pass, 'cgiirc', host, ip]);
+};
+
 IRCHandler.prototype.ident = function(nickname, hostname, servername, realname) {
     this.send('USER', [nickname, hostname, servername], realname);
 };
