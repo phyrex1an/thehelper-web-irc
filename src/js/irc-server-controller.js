@@ -57,7 +57,7 @@ IrcServerController.prototype.onLogin = function(event) {
     var password = event.password;
     var self = this;
     var ip = event['_infos'].ip;
-    var host = even['_infos'].ip;
+    var host = event['_infos'].ip;
 
     handler.registerEventHandler(new EventToProxy(this.proxy));
 
