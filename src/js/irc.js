@@ -283,7 +283,8 @@ IRCPingClient.prototype.onReceivePING = function(e) {
 //    SendPrivMsg
 //    ReceiveNickservNotRegistered
 //    ReceiveNickservPasswordAccepted
-var IrcNickserv = function(handler) { // TODO: Rename to IRCNickserv
+var IrcNickserv = function(nickserv, handler) { // TODO: Rename to IRCNickserv
+    this.nickserv = nickserv;
     this.handler = handler;
     this.nickserv = 'NickServ';
     this.handler.registerEventHandler(this);
@@ -315,6 +316,16 @@ IrcNickserv.prototype.onReceiveNOTICE = function(e) {
                 'identifier' : 'ReceiveNickservToken',
                 'token' : e.args[1].split(": ")[1]
             });
+        } else if (e.args[1].test("isn't registered") {
+            this.handler.sendEvent({
+                'identifier' : 'ReceiveNickservNotRegistered',
+                'nick' : e.args[1].split(" ")[1]
+            });
+        } else if (e.args[1].test(" is ") {
+            this.hander.sendEvent({
+                'identifier' : 'ReceiveNickservRegistered',
+                'nick' : e.args[1].split(" ")[1]
+            })
         }
     }
 };
@@ -322,3 +333,6 @@ IrcNickserv.prototype.onSendNickservDisconnectGhost = function(e) {
     this.handler.privMsg(this.nickserv, 'ghost ' + e.username + ' ' + e.password);
 };
 
+IrcNickserv.prototype.probeUsername = function(username) {
+    this.handler.privMsg(this.nickserv, 'info ' + username);
+};

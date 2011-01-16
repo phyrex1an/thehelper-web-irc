@@ -52,9 +52,9 @@ IrcServerController.prototype.onLogin = function(event) {
     var handler = new IRCHandler('NickServ', socket);
     this.handler = handler;
     new IRCPingClient(handler);
-    new IrcNickserv(handler);
     var username = this.cleanUsername(event.username);
     var password = event.password;
+    var nickserv = new IrcNickserv("NickServ", handler);
     var self = this;
     var ip = event['_infos'].ip;
     var host = event['_infos'].ip;
@@ -65,6 +65,7 @@ IrcServerController.prototype.onLogin = function(event) {
         ['onReceiveNOTICE', 'onReceive433', 
          'sendPass',  'onReceiveMODE',
          'onReceiveNickservNotRegistered',
+         'onReceiveNickservRegistered',
          'onReceiveNickservPasswordAccepted',
          'onReceiveNickservFail',
          'onReceiveNickservRegistrationComplete'],
@@ -76,7 +77,7 @@ IrcServerController.prototype.onLogin = function(event) {
                         return 'Ident';
                     }
                     // handler.pass('webchat'); // This is the SERVER password, not the user one
-                    handler.webirc('th_WebIrc2', host, ip);
+                    handler.webirc('thWebIrc2', host, ip);
                     handler.ident(username, 'webchat', 'irc.thehelper.net', 'webchat');
                     handler.nick(username);
                     return 'Mode';
@@ -86,12 +87,13 @@ IrcServerController.prototype.onLogin = function(event) {
             'Mode' : function(e, d, s) {
                 if (e == 'onReceiveMODE') {
                     handler.mode(username, "+i");
+                    nickserv.probeUsername(username);
                     return 'Nick';
                 }
                 return 'Mode';
             },
             'Nick' : function(e, d, s) {
-                if (e=='onReceiveNOTICE' && d.prefix.test("^NickServ!") && d.args[1].test("^please choose a different nick.")) {
+                if (e=='onReceiveNickservRegistered') {
                     if (event.token) {
                         s.irc.recognize(event.token);
                     } else if (event.remember) {
@@ -101,6 +103,9 @@ IrcServerController.prototype.onLogin = function(event) {
                     }
                     s.irc.away();
                     return 'Identifying';
+                } else if (e=='onReceiveNickservNotRegistered') {
+                    s.irc.registerNick(username, 'www.thehelper.net');
+                    return 'WaitingForRegistration';
                 } else if (e=='onReceive433') {
                     //s.irc.ghostNick();
                     //s.irc.disconnectGhost();
@@ -128,7 +133,15 @@ IrcServerController.prototype.onLogin = function(event) {
             },
             'WaitingForRegistration' : function(e, d, s) {
                 if (e=='onReceiveNickservRegistrationComplete') {
-                    s.irc.identify(password);
+                    if (event.token) {
+                        s.irc.recognize(event.token);
+                    } else if (event.remember) {
+                        s.irc.remember(password);
+                    } else {
+                        s.irc.identify(password);
+                    }
+                    s.irc.away();
+
                     return 'Identifying';
                 }
                 return 'WaitingForRegistration';
