@@ -155,7 +155,7 @@ IRCHandler.prototype.recognize = function(token) {
 
 
 IRCHandler.prototype.registerNick = function(nick, domain) {
-    this.sendNickserv('REGISTER', [nick, domain]);
+    this.sendNickserv('REGISTER', [domain, nick]);
 };
 
 IRCDecoder = function(handler) {
