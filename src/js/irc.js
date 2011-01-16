@@ -316,16 +316,16 @@ IrcNickserv.prototype.onReceiveNOTICE = function(e) {
                 'identifier' : 'ReceiveNickservToken',
                 'token' : e.args[1].split(": ")[1]
             });
-        } else if (e.args[1].test("isn't registered") {
+        } else if (e.args[1].test("isn't registered")) {
             this.handler.sendEvent({
                 'identifier' : 'ReceiveNickservNotRegistered',
                 'nick' : e.args[1].split(" ")[1]
             });
-        } else if (e.args[1].test(" is ") {
+        } else if (e.args[1].test(" is ")) {
             this.hander.sendEvent({
                 'identifier' : 'ReceiveNickservRegistered',
                 'nick' : e.args[1].split(" ")[1]
-            })
+            });
         }
     }
 };
