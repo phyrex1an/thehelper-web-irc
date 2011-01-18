@@ -61,11 +61,11 @@ IrcChatGroupView.prototype.update = function(c, e) {
         this.hideForm();
     } else if (e=='FailedLogin') {
         this.enable();
-        $.cookie("chattoken", null, 'path':'/');
+        $.cookie("chattoken", null, {'path':'/'});
     } else if (e=='Logout') {
         this.displayForm();
         this.enable();
-        $.cookie("chattoken", null, 'path':'/');
+        $.cookie("chattoken", null, {'path':'/'});
     } else if (e.token) {
         $.cookie("chattoken", e.token, {'expires':30,'path':'/'});
     }
