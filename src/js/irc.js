@@ -322,7 +322,7 @@ IrcNickserv.prototype.onReceiveNOTICE = function(e) {
                 'nick' : e.args[1].split(" ")[1]
             });
         } else if (e.args[1].test(" is ")) {
-            this.hander.sendEvent({
+            this.handler.sendEvent({
                 'identifier' : 'ReceiveNickservRegistered',
                 'nick' : e.args[1].split(" ")[1]
             });
