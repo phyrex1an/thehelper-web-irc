@@ -1,4 +1,4 @@
-var FSM = function(input, states, startstate, state) {
+FSM = function(input, states, startstate, state) {
     this.states = states;
     this.currentState = this.states[startstate];
     this.state = state;

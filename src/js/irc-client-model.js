@@ -1,4 +1,4 @@
-var Observable = function() {
+Observable = function() {
     // TODO: The array becomes shared between all children if initialized here
     // Thus, we initialize it in the child constructors instead.
     // Thankfull if someone knows a solutions that doesn't suck
@@ -38,7 +38,7 @@ Observable.prototype.notifyObservers = function(e) {
 
 // Topmost container, deals with connection info such as current
 // username, password, nickserv status etc
-var IrcChatGroup = function(chatList) {
+IrcChatGroup = function(chatList) {
     this.chatList = chatList;
     this.password = "";
     this.username = "";
@@ -157,7 +157,7 @@ function unhashifyArray(a, t) {
 };
 
 
-var IrcChatList = function() {
+IrcChatList = function() {
     this.chats = [];
 };
 IrcChatList.prototype = new Observable();
@@ -251,7 +251,7 @@ IrcChatList.prototype.userQuits = function(user, message) {
     }
 };
 
-var IrcMessageList = function() {
+IrcMessageList = function() {
     this.messages = [];
 };
 IrcMessageList.unhashify = function(hash) {
@@ -268,7 +268,7 @@ IrcMessageList.prototype.current = function() {
     this.notifyObservers({'visible':true});
 };
 
-var IrcUserList = function() {
+IrcUserList = function() {
     this.users = [];
 };
 IrcUserList.unhashify = function(hash) {
@@ -301,7 +301,7 @@ IrcUserList.prototype.get = function(userName) {
     return null;
 };
 
-var IrcChat = function() {
+IrcChat = function() {
 };
 IrcChat.prototype = new Observable();
 IrcChat.unhashify = function(hash) {
@@ -335,7 +335,7 @@ IrcChat.prototype.setTitle = function(title) {
     this.notifyObservers({'title':title});
 };
 
-var IrcPrivateChat = function(withUser) {
+IrcPrivateChat = function(withUser) {
     this.messages = new IrcMessageList();
     this.user = withUser;
     this.hashType = "IrcPrivateChat";
@@ -358,7 +358,7 @@ IrcPrivateChat.prototype.view = function(proxy) {
     return new IrcPrivateChatView(this, proxy);
 };
 
-var IrcChannel = function(name) {
+IrcChannel = function(name) {
     this._name = name;
     this.messages = new IrcMessageList();
     this.users = new IrcUserList();
@@ -390,7 +390,7 @@ IrcChannel.prototype.view = function(proxy) {
     return new IrcChannelView(this, proxy);
 };
 
-var IrcVirtualChannel = function(name, messageUser) {
+IrcVirtualChannel = function(name, messageUser) {
     this._name = name;
     this.messageUser = messageUser;
     this.messages = new IrcMessageList();
@@ -412,7 +412,7 @@ IrcVirtualChannel.prototype.view = function(proxy) {
     return new IrcVirtualChannelView(this, proxy);
 };
 
-var IrcMessage = function() {}
+IrcMessage = function() {}
 IrcMessage.unhashify = function(hash) {
     var subType;
     switch (hash.hashType) {
@@ -431,7 +431,7 @@ IrcMessage.unhashify = function(hash) {
     return result;
 };
 
-var IrcUserMessage = function(from, content) {
+IrcUserMessage = function(from, content) {
     this.hashType = 'IrcUserMessage';
     this.from = from;
     this.content = content;
@@ -444,7 +444,7 @@ IrcUserMessage.prototype.view = function() {
 };
 
 // TODO: Duplication from IrcMessage
-var IrcActionMessage = function(from, content) {
+IrcActionMessage = function(from, content) {
     this.hashType = 'IrcActionMessage';
     this.from = from;
     this.content = content;
@@ -456,7 +456,7 @@ IrcActionMessage.prototype.view = function() {
     return new IrcActionMessageView(this);
 };
 
-var IrcChannelUser = function(name) {
+IrcChannelUser = function(name) {
     this._name = name;
 };
 IrcChannelUser.unhashify = function(hash) {

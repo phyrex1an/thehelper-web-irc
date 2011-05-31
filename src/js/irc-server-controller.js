@@ -1,4 +1,6 @@
-var IrcServerController = function(proxy) {
+var net = require('net');
+
+IrcServerController = function(proxy) {
     this.proxy = proxy;
     this.isInitialized = false;
     this.irc = undefined;
@@ -14,13 +16,13 @@ IrcServerController.prototype.onSetup = function(event) {
         this.proxy.addObserver(new IrcChatEventProxy(this.irc));
         this.isInitialized = true;
     }
-    this.proxy.sendUser({"method":"Setup","irc":this.irc.hashify()}, event["_infos"]);
+    this.proxy.sendUser({"method":"Setup","irc":this.irc.hashify()});
 };
 IrcServerController.prototype.onLogout = function(event) {
     this.handler.quit("Logging out");
 };
 IrcServerController.prototype.onDelUser = function(event) {
-    if (this.isInitialized) {
+    if (this.handler) {
         this.handler.quit("Closed all tabs");
     }
 };
@@ -48,7 +50,8 @@ IrcServerController.prototype.cleanUsername = function(username) {
 };
 
 IrcServerController.prototype.onLogin = function(event) {
-    var socket = new Ape.sockClient(6667, 'irc.thehelper.net', false);
+    var socket = new net.Socket();
+    socket.connect(6667, 'irc.thehelper.net');
     var handler = new IRCHandler('NickServ', socket);
     this.handler = handler;
     new IRCPingClient(handler);
@@ -153,7 +156,7 @@ IrcServerController.prototype.onLogin = function(event) {
         {'irc':handler,'proxy':this.proxy, 'auths': 0}));
 };
 
-var EventToProxy = function(proxy) {
+EventToProxy = function(proxy) {
     this.proxy = proxy;
 };
 EventToProxy.prototype.onReceiveJOIN = function(e) {

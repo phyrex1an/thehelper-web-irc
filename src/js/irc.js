@@ -7,22 +7,22 @@ IRCHandler = function(nickservName, socket) {
     this.decoder = new IRCDecoder(this);
     var self = this;
 
-    socket.onConnect = function() {
+    socket.on('connect', function() {
         self.sendEvent({'identifier':'Open'});
-    };
-    socket.onDisconnect = function() {
+    });
+    socket.on('close', function() {
         self.sendEvent({'identifier':'Close'});
-    };
-    socket.onRead = function(data) {
+    });
+    socket.on('data', function(data) {
         self.decoder.receive(data);
-    };
+    });
 };
 IRCHandler.prototype = new Object();
 IRCHandler.prototype.registerEventHandler = function(handler) {
     this.handlers.push(handler);
 };
 IRCHandler.prototype.sendEvent = function(e) {
-    Ape.log("IRC EVENT: " + hashToDebug(e));
+    sys.log("IRC EVENT: " + hashToDebug(e));
     var eventCallback = "on" + e.identifier;
     for (var i=this.handlers.length-1; i>=0; i--) {
         if (typeof this.handlers[i][eventCallback] == "function") {
@@ -42,7 +42,7 @@ IRCHandler.prototype.connect = function(hostname, port, socket) {
 };
 
 IRCHandler.prototype.close = function() {
-    this.connection.close();
+    this.connection.end();
     // TODO: Is this needed? onDisconnect can't be null on disconnect
     /*this.connection.onConnect = null;
     this.connection.onDisconnect = null;
@@ -50,7 +50,7 @@ IRCHandler.prototype.close = function() {
 };
 
 IRCHandler.prototype.sendRaw = function(raw) {
-    Ape.log(raw);
+    sys.log(raw);
     this.connection.write(raw + this.ENDL);
 };
 
@@ -175,7 +175,7 @@ IRCDecoder.prototype.parseLines = function() {
     for (var i = 0, l = commands.length - 1; i < l; ++i) {
         var line = commands[i];
         if (line.length > 0) {
-            Ape.log(line);
+            sys.log(line);
             this.parseRaw(line);
         }
     }
@@ -283,7 +283,7 @@ IRCPingClient.prototype.onReceivePING = function(e) {
 //    SendPrivMsg
 //    ReceiveNickservNotRegistered
 //    ReceiveNickservPasswordAccepted
-var IrcNickserv = function(nickserv, handler) { // TODO: Rename to IRCNickserv
+IrcNickserv = function(nickserv, handler) { // TODO: Rename to IRCNickserv
     this.nickserv = nickserv;
     this.handler = handler;
     this.nickserv = 'NickServ';

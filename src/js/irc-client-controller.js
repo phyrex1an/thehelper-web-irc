@@ -1,6 +1,6 @@
 // TODO: IrcChatEventProxy should probably be split in two classes
 // one for initiating events and one for passing them on to the model
-var IrcChatEventProxy = function(irc, proxy) {
+IrcChatEventProxy = function(irc, proxy) {
     this.irc = irc;
     this.proxy = proxy;
 };

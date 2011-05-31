@@ -1,24 +1,46 @@
-var IrcServerProxy = function(pipe) {
-    this.pipe = pipe;
+IrcServerProxy = function(cookie) {
+    this.cookie = cookie;
+    this.clients = [];
+    this.numClients = 0;
+    this.currentClient = null;
     this.observers = [];
 };
 IrcServerProxy.prototype = new Observable();
-IrcServerProxy.prototype.receive = function(params, infos) {
-    params["_infos"] = infos;
-    this.sendAll(params);
+IrcServerProxy.prototype.receive = function(data, client) {
+    this.currentClient = client;
+    this.sendAll(data);
 };
-IrcServerProxy.prototype.receiveServer = function(params, infos) {
-    params["_infos"] = infos;
-    this.notifyObservers(params);
+IrcServerProxy.prototype.receiveServer = function(data, client) {
+    this.currentClient = client;
+    this.notifyObservers(data);
 };
 IrcServerProxy.prototype.sendAll = function(data) {
     this.notifyObservers(data);
-    delete data["_infos"]; // TODO: Find a better way to handle server to client responses during a MESSAGE than storing the _infos. Perhaps only do server -> client unicast as a direct response to a MESSAGE (eg, use the return value from the custom command).
-    Ape.log("IRC MULTI RESPONSE: " + new Hash(data).toQueryString());
-    this.pipe.sendRaw("SERVER_IRC_EVENT", data);
+    data.cookie = this.cookie;
+    delete data._infos;
+    sys.log("IRC MULTI RESPONSE: " + hashToDebug(data));
+    for(var i in this.clients) {
+        this.clients[i].send(data);
+    }
 };
-IrcServerProxy.prototype.sendUser = function(data, infos) {
-    Ape.log("IRC SINGLE RESPONSE: " + new Hash(data).toQueryString());
-    //infos.subuser.sendRaw("SERVER_IRC_MESSAGE", data); TODO: Figure out why this doesn't work
-    this.pipe.sendRaw("SERVER_IRC_MESSAGE", data);
+IrcServerProxy.prototype.sendUser = function(data) {
+    data.cookie = this.cookie;
+    delete data._infos;
+    sys.log("IRC SINGLE RESPONSE: " + hashToDebug(data));
+    this.currentClient.send(data);
+};
+IrcServerProxy.prototype.addClient = function(client) {
+    if (!(client.sessionId in this.clients)) {
+        this.clients[client.sessionId] = client;
+        this.numClients++;
+    }
+    sys.log(this.numClients);
+};
+IrcServerProxy.prototype.removeClient = function(client) {
+    if (client.sessionId in this.clients) {
+        delete this.clients[client.sessionId];
+        this.numClients--;
+    }
+    sys.log(this.numClients);
+    return this.numClients == 0;
 };
