@@ -1,9 +1,6 @@
 [submodule "lib/jquery"]
 	path = lib/jquery
 	url = git://github.com/jquery/jquery.git
-[submodule "lib/APE_JSF"]
-	path = lib/APE_JSF
-	url = git://github.com/APE-Project/APE_JSF.git
 [submodule "lib/jquery-cookie"]
 	path = lib/jquery-cookie
 	url = https://github.com/carhartl/jquery-cookie.git
