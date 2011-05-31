@@ -9,7 +9,7 @@
 	url = https://github.com/carhartl/jquery-cookie.git
 [submodule "lib/socket.io"]
 	path = lib/socket.io
-	url = /home/phyrex1an/git/socket.io/
+	url = /home/phyrex1an/git/socket.io
 [submodule "lib/node-uuid"]
 	path = lib/node-uuid
 	url = /home/phyrex1an/git/node-uuid/
