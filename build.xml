@@ -29,14 +29,11 @@
 
    <fileset id="js.src.files" dir="${SOURCE_DIR}/js" casesensitive="yes">
       <include name="config.js"/>
-      <include name="irc.js"/>
-      <include name="ircui.js"/>
-      <include name="irc-client-model.js"/>
-      <include name="irc-client-view.js"/>
-      <include name="irc-client-controller.js"/>
-      <include name="fsm.js"/>
-      <include name="irc-client-proxy.js"/>
-      <include name="irc-client-setup.js"/>
+      <include name="client/model.js"/>
+      <include name="client/view.js"/>
+      <include name="client/controller.js"/>
+      <include name="client/proxy.js"/>
+      <include name="client/setup.js"/>
    </fileset>
 
    <fileset id="js.files" refid="js.lib.files, js.src.files" />

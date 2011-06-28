@@ -176,7 +176,7 @@ IrcChatView.prototype.makeClose = function() {
         });
     $('.title', this.html).append(close_button);
 };
-IrcChatView.prototype.makeTitle = function(text) {
+IrcChatView.prototype.makeTitle = function(text, userlist) {
     var title = $('.title', this.html);
     var self = this;
     this.title = $('<span>')
@@ -185,6 +185,14 @@ IrcChatView.prototype.makeTitle = function(text) {
             self.click();
         });
     title.append(this.title);
+    if (userlist === true) {
+        var button = $('<a class="userlist-switch" alt="Toggle userlist">');
+        button.click(function(e) {
+            e.preventDefault();
+            self.toggleUserlist();
+        });
+        title.append(button);
+    }
 };
 IrcChatView.prototype.onSubmit = function(input) {
     this.proxy.selfMessage(this.chat.name(), input);
@@ -206,6 +214,9 @@ IrcChatView.prototype.makeForm = function() {
     });
     $('.chat-area', this.html).append(form);
 };
+IrcChatView.prototype.toggleUserlist = function() {
+    this.proxy.toggleUserlist(this.chat.name());
+};
 IrcChatView.prototype.close = function(f) {
     this.proxy.closeChat(this.chat.name());
 };
@@ -226,6 +237,13 @@ IrcChatView.prototype.update = function(c, m) {
     } else if (typeof m.title != "undefined") {
         this.title.text(m.title);
     }
+    else if (typeof m.toggleUserlist != "undefined") {
+        if (m.toggleUserlist) {
+            this.html.addClass('userlist');
+        } else {
+            this.html.removeClass('userlist');
+        }
+    }
 };
 
 var IrcPrivateChatView = function(chat, proxy) {
@@ -234,7 +252,7 @@ var IrcPrivateChatView = function(chat, proxy) {
     this.proxy = proxy;
     this.makeBody();
     this.makeClose();
-    this.makeTitle(chat.name());
+    this.makeTitle(chat.name(), false);
     this.addComponent(new IrcMessageListView(chat.messages));
     this.makeForm();
 };
@@ -246,10 +264,13 @@ var IrcChannelView = function(chat, proxy) {
     this.proxy = proxy;
     this.makeBody();
     this.makeClose();
-    this.makeTitle(chat.name());
+    this.makeTitle(chat.name(), true);
     this.addComponent(new IrcMessageListView(chat.messages));
     this.addComponent(new IrcUserListView(chat.users, this.proxy));
     this.makeForm();
+    if (chat.activeUserlist) {
+        this.html.addClass('userlist');3
+    }
 };
 IrcChannelView.prototype = new IrcChatView();
 
@@ -258,7 +279,7 @@ var IrcVirtualChannelView = function(chat, proxy) {
     this.chat = chat;
     this.proxy = proxy;
     this.makeBody();
-    this.makeTitle(chat.name());
+    this.makeTitle(chat.name(), false);
     this.addComponent(new IrcMessageListView(chat.messages));
     this.makeForm();
 };

@@ -26,6 +26,13 @@ IrcChatEventProxy.prototype.closeChat = function(channelName) {
     });
 };
 
+IrcChatEventProxy.prototype.toggleUserlist = function(channelName) {
+    this.sendToServer({
+        'method':'ToggleUserlist',
+        'channelName': channelName
+    });
+};
+
 IrcChatEventProxy.prototype.selfMessage = function(channelName, message) {
     this.sendToServer({
         'method' : 'SelfMessage',
@@ -89,6 +96,10 @@ IrcChatEventProxy.prototype.receiveMinimizeChat = function(e) {
 IrcChatEventProxy.prototype.receiveCloseChat = function(e) {
     var channelName = e['channelName'];
     this.irc.remove(channelName);
+};
+
+IrcChatEventProxy.prototype.receiveToggleUserlist = function(e) {
+    this.irc.toggleUserlist(e.channelName);
 };
 
 IrcChatEventProxy.prototype.receiveSelfMessage = function(e) {

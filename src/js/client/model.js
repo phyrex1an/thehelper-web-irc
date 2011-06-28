@@ -93,6 +93,9 @@ IrcChatGroup.prototype.minimizeChat = function(channelName) {
 IrcChatGroup.prototype.remove = function(channelName) {
     this.chatList.remove(channelName);
 };
+IrcChatGroup.prototype.toggleUserlist = function(channelName) {
+    this.chatList.toggleUserlist(channelName);
+};
 IrcChatGroup.prototype.addMessage = function(channelName, message) {
     this.chatList.addMessage(channelName, message);
 };
@@ -195,6 +198,13 @@ IrcChatList.prototype.maximize = function(channelName) {
 };
 IrcChatList.prototype.minimize = function(channelName) {
     this.safeGetChannel(channelName).current(false);
+};
+IrcChatList.prototype.toggleUserlist = function(channelName) {
+    var channel = this.safeGetChannel(channelName);
+    if (typeof channel.toggleUserlist == "undefined") {
+        throw new Error("Channel has no userlist to toggle: " + channelName);
+    }
+    channel.toggleUserlist();
 };
 IrcChatList.prototype.getChannel = function(channelName) {
     var l = this.chats.length;
@@ -362,6 +372,7 @@ IrcChannel = function(name) {
     this._name = name;
     this.messages = new IrcMessageList();
     this.users = new IrcUserList();
+    this.activeUserlist = false;
     this.hashType = "IrcChannel";
 };
 IrcChannel.prototype = new IrcChat();
@@ -369,7 +380,12 @@ IrcChannel.unhashify = function(hash) {
     var n = new IrcChannel(hash._name);
     n.messages = IrcMessageList.unhashify(hash.messages);
     n.users = IrcUserList.unhashify(hash.users);
+    n.activeUserlist = hash.activeUserlist;
     return n;
+};
+IrcChannel.prototype.toggleUserlist = function() {
+    this.activeUserlist = !this.activeUserlist;
+    this.notifyObservers({toggleUserlist:this.activeUserlist});
 };
 IrcChannel.prototype.name = function() {
     return this._name;
