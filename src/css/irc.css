@@ -131,7 +131,24 @@
 
 #ircchat .channels .channel .chat-area .users {
     display: none;
+}
+
+/* Userlist toogle */
+#ircchat .channels .channel .userlist-switch:before {
+    content: "X";
+}
+
+#ircchat .channels .channel.userlist .chat-area .users {
+    display: block;
     overflow-y: auto;
+    overflow-x: hidden;
+    word-wrap: break-word;
+    text-align:left;
+    height:90%;
+}
+
+#ircchat .channels .channel.userlist .chat-area .messages {
+    display: none;
 }
 
 #ircchat .input-zone {
