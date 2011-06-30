@@ -58,7 +58,7 @@
       in the <project> tag. It will run all the
       dependents.
    -->
-   <target name="build" depends="clean, bundle_javascript, bundle_css, compress_javascript, compress_css" />
+   <target name="build" depends="clean, bundle_javascript, bundle_css, compress_javascript, compress_css, smartsprite_css" />
    <!--
       This is the "create JavaScript bundles" task
       used to create concatenated files for each 
@@ -94,6 +94,17 @@
        <echo>CSS Bundles Done</echo>
    </target>
 
+  <target name="smartsprite_css" depends="bundle_css">
+    <exec executable="smartsprites">
+      <arg value="--document-root-dir-path"/>
+      <arg value="${basedir}"/>
+      <arg value="--css-files"/>
+      <arg value="${basedir}/${BUILD_DIR}/css/main.css"/>
+    </exec>
+  </target>
+
+
+
    <!--
       This task will compress the main.js bundle using YUI 
       compressor and rename the file main.compress.js
@@ -104,19 +115,19 @@
          <fileset dir="${BUILD_DIR}/js" includes="main.js"/>
          <srcfile/>
          <arg line="-o"/>            
-         <mapper type="glob" from="*.js" to="${BUILD_DIR}/js/*.js"/> 
+         <mapper type="glob" from="*.js" to="${BUILD_DIR}/js/*.compress.js"/> 
          <targetfile/>
       </apply>
       <echo>JavaScript Compression Done</echo>
    </target>
 
-   <target name="compress_css" depends="bundle_css">
+   <target name="compress_css" depends="smartsprite_css">
       <echo>Compressing CSS Files...</echo>
       <apply executable="yui-compressor" parallel="false">
-         <fileset dir="${BUILD_DIR}/css" includes="main.css"/>
+         <fileset dir="${BUILD_DIR}/css" includes="main-sprite.css"/>
          <srcfile/>
          <arg line="-o"/>
-         <mapper type="glob" from="*.css" to="${BUILD_DIR}/css/*.css"/>
+         <mapper type="glob" from="*.css" to="${BUILD_DIR}/css/*.compress.css"/>
          <targetfile/>
       </apply>
       <echo>CSS Compression Done</echo>
@@ -126,9 +137,8 @@
       <copy todir="${DIST_DIR}/js">
          <filelist dir="${BUILD_DIR}/js" files="main.js"/>
       </copy>
-      <copy todir="${DIST_DIR}/css">
-         <filelist dir="${BUILD_DIR}/css" files="main.css"/>
-      </copy>
+      <copy file="${BUILD_DIR}/css/main-sprite.compress.css" tofile="${DIST_DIR}/css/main.css"/>
+      <copy file="${BUILD_DIR}/img/sprite.png" tofile="${DIST_DIR}/img/sprite.png"/>
    </target>
 
    <target name="dev" depends="clean">

@@ -1,3 +1,5 @@
+/** sprite: sprite; sprite-image: url('../img/sprite.png'); sprite-layout: vertical */
+
 #ircchat * {
     margin: 0;
     padding: 0;
@@ -93,7 +95,7 @@
 #ircchat .close {
     height:16px;
     width: 16px;
-    background-image: url(/src/img/icons/cross.png);
+    background-image: url(/src/img/icons/cross.png); /** sprite-ref: sprite; */
     float:left;
     cursor:pointer;
     margin-left:1em;
@@ -155,7 +157,7 @@
 #ircchat .channels .channel .userlist-switch {
     height:16px;
     width: 16px;
-    background-image: url(/src/img/icons/users.png);
+    background-image: url(/src/img/icons/users.png); /** sprite-ref: sprite; */
     float:right;
     cursor:pointer;
     margin-right:1em;
