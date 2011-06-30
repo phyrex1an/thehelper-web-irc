@@ -117,6 +117,12 @@ IrcChatGroup.prototype.userQuits = function(user, message) {
 IrcChatGroup.prototype.existingUsersInChannel = function(channelName, userNames) {
     this.chatList.existingUsersInChannel(channelName, userNames);
 };
+IrcChatGroup.prototype.changeUserNick = function(from, to) {
+    this.chatList.changeUserNick(from, to);
+};
+IrcChatGroup.prototype.kickUserFromChannel = function(user, channel, by, message) {
+    this.chatList.kickUserFromChannel(user, channel, by, message);
+};
 IrcChatGroup.prototype.hashify = function() {
     return doHashify(this).result;
 };
@@ -260,6 +266,15 @@ IrcChatList.prototype.userQuits = function(user, message) {
         this.chats[i].quit(user, message);
     }
 };
+IrcChatList.prototype.changeUserNick = function(from, to) {
+    var l = this.chats.length;
+    for(var i = 0; i<l; i++) {
+        this.chats[i].changeNick(from, to);
+    }
+};
+IrcChatList.prototype.kickUserFromChannel = function(user, channel, by, message) {
+    this.safeGetChannel(channel).kickUser(user, by, message);
+}
 
 IrcMessageList = function() {
     this.messages = [];
@@ -296,7 +311,7 @@ IrcUserList.prototype.remove = function(user) {
     for (var i=0; i<l; i++) {
         if (this.users[i].equals(user)) {
             this.users.splice(i,i);
-                this.notifyObservers({'event':'remove','user':user});
+            this.notifyObservers({'event':'remove','user':user});
             break;
         };
     };
@@ -392,15 +407,34 @@ IrcChannel.prototype.name = function() {
 };
 IrcChannel.prototype.join = function(user) {
     this.users.add(user);
+    this.addUserJoinMessage(user);
 };
 IrcChannel.prototype.part = function(user, message) {
     this.users.remove(user);
+    this.addUserLeaveMessage(user, message);
 };
 IrcChannel.prototype.quit = function(user, message) {
     this.users.remove(user);
 };
 IrcChannel.prototype.getUser = function(userName) {
     return this.users.get(userName);
+};
+IrcChannel.prototype.changeNick = function(from, to) {
+    this.getUser(from.name()).changeNick(to);
+    this.addUserChangeNickMessage(from, to);
+};
+IrcChannel.prototype.kickUser = function(user, by, message) {
+    this.users.remove(user);
+    this.addUserLeaveMessage(user, "kicked by " + by.name() + " (" + message +")");
+};
+IrcChannel.prototype.addUserLeaveMessage = function(user, message) {
+    this.addMessage(new IrcSystemMessage(user.name() + " left the channel. (" + message + ")"));
+};
+IrcChannel.prototype.addUserJoinMessage = function(user) {
+    this.addMessage(new IrcSystemMessage(user.name() + " joined the channel"));
+};
+IrcChannel.prototype.addUserChangeNickMessage = function(from, to) {
+    this.addMessage(new IrcSystemMessage(from.name() + " is now known as " + to));
 };
 IrcChannel.prototype.view = function(proxy) {
     return new IrcChannelView(this, proxy);
@@ -438,12 +472,13 @@ IrcMessage.unhashify = function(hash) {
     case 'IrcActionMessage':
         subType = IrcActionMessage;
         break;
+    case 'IrcSystemMessage':
+        subType = IrcSystemMessage;
+        break;
     default:
         throw new Error("Unrecognized case " + hash.hashType);
     }
     var result = subType.unhashify(hash);
-    result.from = IrcChannelUser.unhashify(hash.from);
-    result.content = hash.content;
     return result;
 };
 
@@ -453,10 +488,21 @@ IrcUserMessage = function(from, content) {
     this.content = content;
 };
 IrcUserMessage.unhashify = function(hash) {
-    return new IrcUserMessage();
+    return new IrcUserMessage(IrcChannelUser.unhashify(hash.from), hash.content);
 };
 IrcUserMessage.prototype.view = function() {
     return new IrcMessageView(this);
+};
+
+IrcSystemMessage = function(message) {
+    this.hashType = 'IrcSystemMessage';
+    this.message = message;
+};
+IrcSystemMessage.unhashify = function(hash) {
+    return new IrcSystemMessage(hash.message);
+};
+IrcSystemMessage.prototype.view = function() {
+    return new IrcSystemMessageView(this);
 };
 
 // TODO: Duplication from IrcMessage
@@ -466,7 +512,7 @@ IrcActionMessage = function(from, content) {
     this.content = content;
 };
 IrcActionMessage.unhashify = function(hash) {
-    return new IrcActionMessage();
+    return new IrcActionMessage(IrcChannelUser.unhashify(hash.from), hash.content);
 };
 IrcActionMessage.prototype.view = function() {
     return new IrcActionMessageView(this);
@@ -478,11 +524,16 @@ IrcChannelUser = function(name) {
 IrcChannelUser.unhashify = function(hash) {
     return new IrcChannelUser(hash._name);
 };
+IrcChannelUser.prototype = new Observable();
 IrcChannelUser.prototype.equals = function(user) {
     return this._name == user.name();
 };
 IrcChannelUser.prototype.name = function() {
     return this._name;
+};
+IrcChannelUser.prototype.changeNick = function(to) {
+    this._name = to;
+    this.notifyObservers({'newNick':to});
 };
 
 IrcChannelUser.fromName = function(name) {

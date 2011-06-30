@@ -62,7 +62,7 @@
     position:relative;
     border: 1px solid #5A7F97;
     margin-left: 10px;
-    width: 13em;
+    width: 15em;
     text-align: center;
     -moz-border-radius:0.75em;
     -webkit-border-radius:0.75em;
@@ -86,16 +86,24 @@
     padding:0 5px;
 }
 
-#ircchat .close:after {
-    font-weight: normal;
-    content: "X";
+#ircchat .channels .channel .title > span {
+    cursor:pointer;
+}
+
+#ircchat .close {
+    height:16px;
+    width: 16px;
+    background-image: url(/src/img/icons/cross.png);
+    float:left;
+    cursor:pointer;
+    margin-left:1em;
 }
 
 #ircchat .channels .channel .chat-area {
     position:absolute;
     bottom:1.5em;
     right:-1px;
-    width:13em;
+    width:15em;
     height:20em;
     border: 1px solid #5A7F97;
     -moz-border-radius: 0.75em 0.75em 0 0;
@@ -114,8 +122,12 @@
     height:90%;
 }
 
-#ircchat .chat-message, #ircchat .action-message {
+#ircchat .chat-message, #ircchat .action-message, #ircchat .system-message {
     margin-left: 2px;
+}
+
+#ircchat .system-message {
+    font-weight: bold;
 }
 
 #ircchat .chat-message .user, #ircchat .action-message .user {
@@ -133,9 +145,20 @@
     display: none;
 }
 
+#ircchat .channels .channel .chat-area .users li {
+    margin-left: 3px;
+    font-weight: bold;
+    cursor:pointer;
+}
+
 /* Userlist toogle */
-#ircchat .channels .channel .userlist-switch:before {
-    content: "X";
+#ircchat .channels .channel .userlist-switch {
+    height:16px;
+    width: 16px;
+    background-image: url(/src/img/icons/users.png);
+    float:right;
+    cursor:pointer;
+    margin-right:1em;
 }
 
 #ircchat .channels .channel.userlist .chat-area .users {

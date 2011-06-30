@@ -92,6 +92,10 @@ IrcServerController.prototype.onLogin = function(event) {
                     handler.mode(username, "+i");
                     nickserv.probeUsername(username);
                     return 'Nick';
+                } else if (e=='onReceive433') {
+                    s.proxy.sendAll({'method':'LoginFail'});
+                    handler.quit("Failed nickserv");
+                    return null;
                 }
                 return 'Mode';
             },
@@ -110,14 +114,11 @@ IrcServerController.prototype.onLogin = function(event) {
                     s.irc.registerNick(username, 'www.thehelper.net');
                     return 'WaitingForRegistration';
                 } else if (e=='onReceive433') {
-                    //s.irc.ghostNick();
-                    //s.irc.disconnectGhost();
-                    return 'DisconnectingGhost';
+                    s.proxy.sendAll({'method':'LoginFail'});
+                    handler.quit("Failed nickserv");
+                    return null;
                 }
                 return 'Nick';
-            },
-            'DisconnectingGhost' : function(e, d, s) {
-                // TODO
             },
             'Identifying' : function(e, d, s) {
                 if (e=='onReceiveNickservNotRegistered') {
@@ -179,4 +180,10 @@ EventToProxy.prototype.onReceiveQUIT = function(e) {
 };
 EventToProxy.prototype.onReceiveNickservToken = function(e) {
     this.proxy.sendAll({'method':'DoSaveToken', 'token':e.token});
+};
+EventToProxy.prototype.onReceiveNICK = function(e) {
+    this.proxy.sendAll({'method':'DoChangeNick', 'from':e.prefix.split('!')[0], 'to': e.args[0]});
+};
+EventToProxy.prototype.onReceiveKICK = function(e) {    
+    this.proxy.sendAll({'method':'DoKickUser', 'by':e.prefix.split('!')[0], 'channel':e.args[0], 'user':e.args[1],'message':e.args[2]});
 };

@@ -299,6 +299,12 @@ function createMessageView(cssClass) {
 var IrcMessageView = createMessageView('chat-message');
 var IrcActionMessageView = createMessageView('action-message');
 
+var IrcSystemMessageView = function(message) {
+    this.html = $('<li class="system-message">');
+    this.html.text(message.message);
+};
+
+
 var IrcChannelUserView = function(user, proxy) {
     this.proxy = proxy;
     this.html = $('<li>');
@@ -307,6 +313,10 @@ var IrcChannelUserView = function(user, proxy) {
     this.html.click(function() {
         self.click();
     });
+    user.addObserver(this);
+};
+IrcChannelUserView.prototype.update = function(l, e) {
+    this.html.text(e.newNick);
 };
 IrcChannelUserView.prototype.click = function() {
     this.proxy.joinChannel(this.html.html());

@@ -23,10 +23,14 @@ connect_client = function(client) {
 disconnect_client = function(client) {
     if (('cookie' in client) && (clients[client.cookie].removeClient(client))) {
         destroy_timers[client.cookie] = timers.setTimeout(function() {
-            clients[client.cookie].receiveServer({'method':'DelUser'}, null);
-            delete clients[client.cookie];
-            sys.log("Deleting irc");
-            delete destroy_timers[client.cookie];
+            try {
+                clients[client.cookie].receiveServer({'method':'DelUser'}, null);
+                delete clients[client.cookie];
+                sys.log("Deleting irc cookie " + client.cookie);
+                delete destroy_timers[client.cookie];
+            } catch (e) {
+                sys.log(e);
+            }
         }, 1000*10); // 10 seconds
     }
 };

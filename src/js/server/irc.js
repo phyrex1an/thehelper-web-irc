@@ -8,13 +8,28 @@ IRCHandler = function(nickservName, socket) {
     var self = this;
 
     socket.on('connect', function() {
-        self.sendEvent({'identifier':'Open'});
+        try {
+            self.sendEvent({'identifier':'Open'});
+        } catch (e) {
+            sys.log(e);
+        }
     });
     socket.on('close', function() {
-        self.sendEvent({'identifier':'Close'});
+        try {
+            self.sendEvent({'identifier':'Close'});
+        } catch (e) {
+            sys.log(e);
+        }
     });
     socket.on('data', function(data) {
-        self.decoder.receive(data);
+        try {
+            self.decoder.receive(data);
+        } catch (e) {
+            sys.log(e);
+        }
+    });
+    socket.on('error', function(error) {
+        sys.log(error);
     });
 };
 IRCHandler.prototype = new Object();

@@ -23,8 +23,12 @@ server.listen(webcat.port);
 var socket = io.listen(server, webcat.socketOptions);
 
 socket.on('clientDisconnect', function(client) {
-    disconnect_client(client);
-    sys.log("IRC deluser");
+    try {
+        disconnect_client(client);
+        sys.log("IRC deluser");
+    } catch (e) {
+        sys.log(e);
+    }
 });
 
 socket.on('clientConnect', function(client) {
@@ -32,13 +36,17 @@ socket.on('clientConnect', function(client) {
 });
 
 socket.on('clientMessage', function(message, client) {
-    sys.log("RECEIVE IRC EVENT: " + hashToDebug(message)); 
-    var proxy = client_get_proxy(client, message);
-    message.cookie = undefined;
-    // TODO: Get client information to the right places in a better way
-    // TODO: Investigate what transports this is valid for
-    message["_infos"] = {};
-    message["_infos"].ip = client.connection.remoteAddress;
-    sys.log("CLIENT IP " + client.connection.remoteAddress);
-    proxy.receive(message, client);
+    try {
+        sys.log("RECEIVE IRC EVENT: " + hashToDebug(message)); 
+        var proxy = client_get_proxy(client, message);
+        message.cookie = undefined;
+        // TODO: Get client information to the right places in a better way
+        // TODO: Investigate what transports this is valid for
+        message["_infos"] = {};
+        message["_infos"].ip = client.connection.remoteAddress;
+        sys.log("CLIENT IP " + client.connection.remoteAddress);
+        proxy.receive(message, client);
+    } catch (e) {
+        sys.log(e);
+    }
 }); 

@@ -172,19 +172,13 @@ IrcChatEventProxy.prototype.receiveUsersInChannel = function(e) {
     this.irc.existingUsersInChannel(channelName, userNames);
 };
 
-IrcChatEventProxy.prototype.receiveUserLeftChannel = function(e) {
-    var channelName = e['channelName'];
-    var userName = e['userName'];
+
+IrcChatEventProxy.prototype.receiveDoChangeNick = function(e) {
+    this.irc.changeUserNick(new IrcChannelUser(e.from), e.to);
 };
 
-IrcChatEventProxy.prototype.receiveUserJoinedChannel = function(e) {
-    var channelName = e['channelName'];
-    var userName = e['userName'];
-};
-
-IrcChatEventProxy.prototype.receiveUserChangedNick = function(e) {
-    var oldNick = e['oldNick'];
-    var newNick = e['newNick'];
+IrcChatEventProxy.prototype.receiveDoKickUser = function(e) {
+    this.irc.kickUserFromChannel(new IrcChannelUser(e.user), e.channel, new IrcChannelUser(e.by), e.message);
 };
 
 IrcChatEventProxy.prototype.receiveJoinChannel = function(e) {
