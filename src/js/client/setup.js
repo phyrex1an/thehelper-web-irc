@@ -1,6 +1,6 @@
 $(document).ready(function() {
     var root = $('#ircchat');
-    var socket = new io.Socket(webcat.host, {port:webcat.port});
+    var socket = new io.connect(webcat.host, webcat);
     var proxy = new IrcClientProxy(socket);
     root.css('display', 'block');
     $('p.notice', root).html('Connecting to server');
@@ -13,10 +13,11 @@ $(document).ready(function() {
             'method' : 'Setup'
         });
     });
-    socket.on('message', function(message) {
+    var messageReceiver = function(message) {
         proxy.receive(message);
-    });
-    socket.connect();
+    };
+    socket.on('single response', messageReceiver);
+    socket.on('multi response', messageReceiver);
 });
 
 if (typeof console == "undefined") {

@@ -6,7 +6,7 @@
 	url = https://github.com/carhartl/jquery-cookie.git
 [submodule "lib/socket.io"]
 	path = lib/socket.io
-	url = /home/phyrex1an/git/socket.io
-[submodule "lib/node-uuid"]
-	path = lib/node-uuid
-	url = /home/phyrex1an/git/node-uuid/
+	url = git://github.com/LearnBoost/socket.io.git
+[submodule "lib/socket.io-client"]
+	path = lib/socket.io-client
+	url = git://github.com/LearnBoost/socket.io-client.git

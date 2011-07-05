@@ -1,9 +1,8 @@
-var http = require('http');
-var io = require('../socket.io');
-timers = require('timers');
-uuid = require('../node-uuid/uuid');
-/*var*/ sys = require('sys');
 require('../config.js');
+var io = require('socket.io').listen(webcat.port);
+timers = require('timers');
+uuid = require('node-uuid');
+/*var*/ sys = require('sys');
 require('./util.js');
 require('../client/model.js');
 require('./proxy.js');
@@ -14,39 +13,34 @@ require('./irc.js'); // TODO: Rename to irc-server-connection.js
 require('./fsm.js');
 
 
-var server = http.createServer(function(req, res){
-    res.writeHead(403, {'Content-Type': 'text/html'});
-    res.end('Normal http not available');
-});
-server.listen(webcat.port);
 
-var socket = io.listen(server, webcat.socketOptions);
-
-socket.on('clientDisconnect', function(client) {
-    try {
-        disconnect_client(client);
-        sys.log("IRC deluser");
-    } catch (e) {
-        sys.log(e);
-    }
-});
-
-socket.on('clientConnect', function(client) {
+io.sockets.on('connection', function(socket) {
     sys.log("IRC adduser");
-});
 
-socket.on('clientMessage', function(message, client) {
-    try {
-        sys.log("RECEIVE IRC EVENT: " + hashToDebug(message)); 
-        var proxy = client_get_proxy(client, message);
-        message.cookie = undefined;
-        // TODO: Get client information to the right places in a better way
-        // TODO: Investigate what transports this is valid for
-        message["_infos"] = {};
-        message["_infos"].ip = client.connection.remoteAddress;
-        sys.log("CLIENT IP " + client.connection.remoteAddress);
-        proxy.receive(message, client);
-    } catch (e) {
-        sys.log(e);
-    }
-}); 
+    socket.on('disconnect', function() {
+        try {
+            disconnect_client(socket);
+            sys.log("IRC deluser");
+        } catch (e) {
+            sys.log(e);
+        }
+    });
+    // Use a single receiver for all messages for now.
+    var messageReceiver = function(message) {
+        try {
+            sys.log("RECEIVE IRC EVENT: " + hashToDebug(message)); 
+            var proxy = client_get_proxy(socket, message);
+            message.cookie = undefined;
+            // TODO: Get client information to the right places in a better way
+            // TODO: Investigate what transports this is valid for
+            message["_infos"] = {};
+            message["_infos"].ip = socket.handshake.address.address;
+            sys.log("CLIENT IP " + socket.handshake.address.address);
+            proxy.receive(message, socket);
+        } catch (e) {
+            sys.log(e);
+        }
+    };
+    socket.on('server message', messageReceiver);
+    socket.on('client message', messageReceiver);
+});

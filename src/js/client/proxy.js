@@ -16,7 +16,7 @@ IrcClientProxy.prototype.sendAll = function(data) {
         data.cookie = $.cookie("chatcookie");
     }
     console.log('CLIENT_IRC_EVENT %o', data);
-    this.socket.send(data);
+    this.socket.emit('client message', data);
 };
 // A message that is only to be sent to the server
 IrcClientProxy.prototype.sendServer = function(data) {
@@ -24,5 +24,5 @@ IrcClientProxy.prototype.sendServer = function(data) {
         data.cookie = $.cookie("chatcookie");
     }
     console.log('CLIENT_IRC_MESSAGE %o', data);
-    this.socket.send(data);
+    this.socket.emit('server message', data);
 };

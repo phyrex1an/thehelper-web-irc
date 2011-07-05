@@ -20,14 +20,14 @@ IrcServerProxy.prototype.sendAll = function(data) {
     delete data._infos;
     sys.log("IRC MULTI RESPONSE: " + hashToDebug(data));
     for(var i in this.clients) {
-        this.clients[i].send(data);
+        this.clients[i].emit('multi response', data);
     }
 };
 IrcServerProxy.prototype.sendUser = function(data) {
     data.cookie = this.cookie;
     delete data._infos;
     sys.log("IRC SINGLE RESPONSE: " + hashToDebug(data));
-    this.currentClient.send(data);
+    this.currentClient.emit('single response', data);
 };
 IrcServerProxy.prototype.addClient = function(client) {
     if (!(client.sessionId in this.clients)) {
