@@ -1,140 +1,114 @@
 /** sprite: sprite; sprite-image: url('../img/sprite.png'); sprite-layout: vertical */
 
 #ircchat * {
+    color: black;
     margin: 0;
     padding: 0;
 }
-
 #ircchat {
-    display: none;
+    background-color: #7192A8;
+    border: 1px solid #5A7F97;
+    bottom: 0;
+    color: #E0E0E0;
     height: 1.5em;
-    position: fixed;
-    bottom: 3px;
-    right: 3px;
     margin: 0 auto;
     padding: 0 1em;
-    border: 1px solid #5A7F97;
-    -moz-border-radius:0.75em;
-    -webkit-border-radius:0.75em;
-    -opera-border-radius:0.75em;
-    -khtml-border-radius:0.75em;
-    border-radius:0.75em;
-    background-color: #7192A8;
-    color: #4E4E4E;
-}
-
-#ircchat form.login {
+    position: fixed;
+    right: 0;
     display:none;
 }
-
-#ircchat form.login input {
-    border-color: black;
+#ircchat .login {
+    float: left;
 }
-
-#ircchat form.login fieldset {
-    border:none;
-}
-
 #ircchat .channels {
     float: left;
 }
-
 #ircchat .menu {
     float: left;
 }
-
 #ircchat .menu h2 {
+    color: white;
+    display: block;
     font-size: 1em;
+    height: 100%;
+    padding: 0.1em;
     vertical-align: middle;
 }
-
 #ircchat .menu .options {
-    display: none;
-    position:absolute;
+    background-image: -moz-linear-gradient(center top , #F5F5F5, #F0F0F0);
+    background-image: -webkit-linear-gradient(center top , #F5F5F5, #F0F0F0);
+    background-image: linear-gradient(center top , #F5F5F5, #F0F0F0);
+    background-color: #F5F5F5;
+    border: 1px solid #7192A8;
+    border-radius: 0.5em 0.5em 0 0;
     bottom: 1.5em;
-    background-color: #7192A8;
+    display: none;
+    padding: 0.25em;
+    position: absolute;
+    right: -1px;
 }
-
 #ircchat .menu:hover .options {
     display: block;
 }
-
 #ircchat .channels .channel {
-    float:left;
-    position:relative;
+    background-color: #FFFFFF;
     border: 1px solid #5A7F97;
+    border-radius: 0 0 0.75em 0.75em;
+    float: left;
     margin-left: 10px;
-    width: 15em;
+    position: relative;
     text-align: center;
-    -moz-border-radius:0.75em;
-    -webkit-border-radius:0.75em;
-    -opera-border-radius:0.75em;
-    -khtml-border-radius:0.75em;
-    border-radius:0.75em;
-    background-color: #ffffff;
+    width: 18em;
 }
-
 #ircchat .channels .channel.alert {
     background-color: #FF6600;
 }
-
 #ircchat li {
-    list-style:none;
+    list-style: none outside none;
 }
-
 #ircchat .channels .channel .title {
-    font-size:1em;
+    font-size: 1em;
+    padding: 0 5px;
     vertical-align: middle;
-    padding:0 5px;
 }
-
 #ircchat .channels .channel .title > span {
-    cursor:pointer;
+    cursor: pointer;
 }
-
 #ircchat .close {
-    height:16px;
-    width: 16px;
     background-image: url(/src/img/icons/cross.png); /** sprite-ref: sprite; */
-    float:left;
-    cursor:pointer;
-    margin-left:1em;
+    cursor: pointer;
+    float: left;
+    height: 16px;
+    margin-left: 1em;
+    width: 16px;
 }
-
 #ircchat .channels .channel .chat-area {
-    position:absolute;
-    bottom:1.5em;
-    right:-1px;
-    width:15em;
-    height:20em;
+    background-image: -moz-linear-gradient(center top , #F9F9F9, #F0F0F0);
+    background-image: -webkit-linear-gradient(center top , #F9F9F9, #F0F0F0);
+    background-image: linear-gradient(center top , #F9F9F9, #F0F0F0);
+    background-color: #F9F9F9;
     border: 1px solid #5A7F97;
-    -moz-border-radius: 0.75em 0.75em 0 0;
-    -webkit-border-radius:0.75em 0.75em 0 0;
-    -opera-border-radius:0.75em 0.75em 0 0;
-    -khtml-border-radius:0.75em 0.75em 0 0;
-    border-radius:0.75em 0.75em 0 0;
-    background-color:#7192A8;
+    border-radius: 0.5em 0.5em 0 0;
+    bottom: 1.5em;
+    height: 20em;
+    position: absolute;
+    right: -1px;
+    width: 18em;
 }
-
 #ircchat .channels .channel .chat-area .messages {
-    overflow-y: auto;
+    height: 90%;
     overflow-x: hidden;
+    overflow-y: auto;
+    padding: 0.25em;
+    text-align: left;
     word-wrap: break-word;
-    text-align:left;
-    height:90%;
 }
-
 #ircchat .chat-message, #ircchat .action-message, #ircchat .system-message {
     margin-left: 2px;
 }
-
-#ircchat .system-message {
-    font-weight: bold;
-}
-
 #ircchat .chat-message .user, #ircchat .action-message .user {
-    margin-right: 3px;
     font-weight: bold;
+    margin-right: 3px;
 }
 #ircchat .chat-message .user:after {
     content: ":";
@@ -142,55 +116,46 @@
 #ircchat .action-message .user:before {
     content: "***";
 }
-
 #ircchat .channels .channel .chat-area .users {
     display: none;
 }
-
 #ircchat .channels .channel .chat-area .users li {
-    margin-left: 3px;
+    cursor: pointer;
     font-weight: bold;
-    cursor:pointer;
+    margin-left: 3px;
 }
-
-/* Userlist toogle */
 #ircchat .channels .channel .userlist-switch {
-    height:16px;
-    width: 16px;
     background-image: url(/src/img/icons/users.png); /** sprite-ref: sprite; */
-    float:right;
-    cursor:pointer;
-    margin-right:1em;
+    cursor: pointer;
+    float: right;
+    height: 16px;
+    margin-right: 1em;
+    width: 16px;
 }
-
 #ircchat .channels .channel.userlist .chat-area .users {
     display: block;
-    overflow-y: auto;
+    height: 90%;
     overflow-x: hidden;
+    overflow-y: auto;
+    text-align: left;
     word-wrap: break-word;
-    text-align:left;
-    height:90%;
 }
-
 #ircchat .channels .channel.userlist .chat-area .messages {
     display: none;
 }
-
 #ircchat .input-zone {
-    clear:both;
-    height:10%;
-    margin:auto;
+    clear: both;
+    width: 17.5em;
 }
-
-/* Hide all elements in the channel list */
+#ircchat .input-zone > input {
+    width: 100%;
+}
 #ircchat .channels .channel .chat-area {
-    display:none;
+    display: none;
 }
-/* except the current tab */
 #ircchat .channels .channel.current .chat-area {
-    display:block;
+    display: block;
 }
-/* and the titles */
 #ircchat .channels .channel .title {
-    display:inline;
+    display: inline;
 }
