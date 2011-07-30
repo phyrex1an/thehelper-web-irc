@@ -66,6 +66,13 @@ IrcChatEventProxy.prototype.logout = function() {
     this.sendToServer({'method':'Logout'});
 };
 
+IrcChatEventProxy.prototype.disable = function() {
+    this.sendToServer({'method':'Disable'});
+};
+
+IrcChatEventProxy.prototype.receiveUsername = function(e) {
+    this.irc.setUsername(e.username);
+};
 IrcChatEventProxy.prototype.receiveLogin = function(e) {
     var username = e.username;
     var password = e.password;
@@ -74,6 +81,10 @@ IrcChatEventProxy.prototype.receiveLogin = function(e) {
 
 IrcChatEventProxy.prototype.receiveLogout = function(e) {
     this.irc.logout();
+};
+
+IrcChatEventProxy.prototype.receiveDisable = function(e) {
+    this.irc.disable();
 };
 
 IrcChatEventProxy.prototype.receiveLoginSuccess = function(e) {
@@ -218,8 +229,8 @@ IrcClientController.prototype.onSetup = function(event) {
         this.irc = IrcChatGroup.unhashify(event.irc);
         var chatProxy = new IrcChatEventProxy(this.irc, this.proxy);
         this.proxy.addObserver(chatProxy);
-        this.view = new IrcChatGroupView(this.irc, chatProxy, this.root);
-        this.root.html(this.view.html);
+        this.view = new IrcChatGroupView(this.irc, chatProxy, this.root, event.config);
+        $('.channels', this.root).replaceWith(this.view.html);
     }
 };
 IrcClientController.prototype.onLogin = function(event) {

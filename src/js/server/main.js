@@ -16,31 +16,36 @@ require('./fsm.js');
 
 io.sockets.on('connection', function(socket) {
     sys.log("IRC adduser");
+    
+    on_session(socket, function(cookie) {
+        var data = session_get_data(cookie);
+        data.ip = socket.handshake.address.address;
+        if (!data.chat) {
+            data.chat = new IrcServerProxy(cookie);
+            data.chat.addObserver(new IrcServerController(data.chat, data.ip));
+            on_destroy_session(cookie, function() {
+                // TODO: Debug log
+                data.chat.receiveServer({'method':'DelUser'}, null);
+            });
+        }
+        var proxy = data.chat;
+        // Use a single receiver for all messages for now.
+        var messageReceiver = function(message) {
+            try {
+                sys.log("RECEIVE IRC EVENT: " + hashToDebug(message));
+                reset_mayday_timer(cookie);
+                // TODO: Get client information to the right places in a better way
+                // TODO: Investigate what transports this is valid for
 
-    socket.on('disconnect', function() {
-        try {
-            disconnect_client(socket);
-            sys.log("IRC deluser");
-        } catch (e) {
-            sys.log(e);
-        }
+                proxy.receive(message, socket);
+            } catch (e) {
+                sys.log(e);
+            }
+        };
+        socket.on('server message', messageReceiver);
+        socket.on('client message', messageReceiver);
     });
-    // Use a single receiver for all messages for now.
-    var messageReceiver = function(message) {
-        try {
-            sys.log("RECEIVE IRC EVENT: " + hashToDebug(message)); 
-            var proxy = client_get_proxy(socket, message);
-            message.cookie = undefined;
-            // TODO: Get client information to the right places in a better way
-            // TODO: Investigate what transports this is valid for
-            message["_infos"] = {};
-            message["_infos"].ip = socket.handshake.address.address;
-            sys.log("CLIENT IP " + socket.handshake.address.address);
-            proxy.receive(message, socket);
-        } catch (e) {
-            sys.log(e);
-        }
-    };
-    socket.on('server message', messageReceiver);
-    socket.on('client message', messageReceiver);
+
+
+
 });

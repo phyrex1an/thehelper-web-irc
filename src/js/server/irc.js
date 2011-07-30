@@ -72,10 +72,10 @@ IRCHandler.prototype.sendRaw = function(raw) {
 IRCHandler.prototype.send = function(type, prefixes, message) {
     var rawMessage = type;
     if (typeof prefixes != "undefined") {
-        rawMessage += " " + ((prefixes instanceof Array) ? prefixes.join(" ") : prefixes);
+        rawMessage += " " + ((prefixes instanceof Array) ? prefixes.map(function(e) { return e.replace(" ", "");}).join(" ") : prefixes);
     }
     if (typeof message != "undefined") {
-        rawMessage += " :" + message;
+        rawMessage += " :" + message.replace("\n", " ");
     }
     this.sendRaw(rawMessage);
 };

@@ -16,6 +16,21 @@
 	<script type="text/javascript" src="lib/jquery-cookie/jquery.cookie.js"></script>
 	<script type="text/javascript" src="socket.io/socket.io.js"></script>
 	<script type="text/javascript" src="dist/js/main.js"></script>
+        <script type="text/javascript">
+            $(document).ready(function() {
+            webcat_setup({
+            on: '#ircchat',              // Display chat on this html node
+            username: 'irctester',
+            server: 'irc.thehelper.net', // Connect to irc server
+            autoUsername: false,         // Should a username be auto generated?
+            changeUsername: true,        // Once the username is set by the user, can it be changed? (ui setting)
+            fallbackUsername: true,      // Should a fallback username be tested if the first one fails?
+            requirePassword: false,      // Is a password required before starting the chat
+            allowPassword:   false,       // Is a password allowed
+            autoChannels: ['#thehelper']
+            });
+            });
+        </script>
     </head>
     <body>
         <p><a href="/">Open new page</a> Lorem ipsum dolor sit amet, consectetur adipiscing elit. Nullam dictum ornare justo sit amet fermentum. Sed neque neque, ultricies a eleifend vitae, cursus vitae sapien. Proin leo tellus, placerat sed interdum ac, semper congue justo. Etiam ac condimentum nisi. Donec at eros quis mi mollis pellentesque at id purus. Cras id adipiscing dui. Aenean vitae dui at justo condimentum sollicitudin. Etiam urna risus, tincidunt nec dignissim sit amet, porta sed erat. Morbi diam ipsum, tempor non volutpat in, auctor faucibus nibh. Fusce consequat interdum ante, eu rutrum tortor sodales sit amet. Nullam volutpat egestas lacus at accumsan. Curabitur turpis ipsum, eleifend a condimentum vitae, sollicitudin et mi. Nulla consequat dapibus consequat. Donec arcu eros, consequat in mollis id, sagittis mattis nibh. Lorem ipsum dolor sit amet, consectetur adipiscing elit.</p>
@@ -28,7 +43,6 @@
 
 <p>Fusce a ligula justo. Phasellus magna eros, ornare eu placerat id, accumsan vitae mauris. Vivamus nisl neque, tempus a mollis non, porttitor ut sem. Aenean eget nulla arcu. Vivamus mi velit, suscipit id congue id, hendrerit sed ligula. Vivamus rhoncus auctor augue sit amet commodo. Nunc porttitor, nulla in laoreet blandit, justo turpis dignissim tortor, a convallis ipsum lorem ac sem. Integer ullamcorper massa dictum massa fermentum rutrum. Etiam consequat ultricies odio, vitae rutrum libero consequat in. Morbi eget sollicitudin enim. Nunc ac purus ut mauris euismod vulputate. Nam accumsan eleifend facilisis. Maecenas mattis rhoncus tellus eget tincidunt. Aliquam orci justo, malesuada at cursus eget, euismod eget neque. Praesent ut dignissim tellus. </p>
         <div id="ircchat">
-            <p class="notice"></p>
             <form class="login">
                 <fieldset>
                     <label for="chatUsername">Username</label>
@@ -40,6 +54,14 @@
                     <input type="submit" value="Login" disabled="disabled"/>
                 </fieldset>
             </form>
+            <div class="channels"></div>
+            <div class="menu">
+                <h2>Chat</h2>
+                <ul class="options">
+                    <li class="join">#thehelper</li>
+                    <li class="disable">Disable chat</li>
+                </ul>
+            </div>
         </div>
     </body>
 </html>

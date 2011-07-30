@@ -1,9 +1,10 @@
 var net = require('net');
 
-IrcServerController = function(proxy) {
+IrcServerController = function(proxy, ip) {
     this.proxy = proxy;
     this.isInitialized = false;
     this.irc = undefined;
+    this.ip = ip;
 };
 IrcServerController.prototype.update = function(proxy, event) {
     if (typeof this['on' + event['method']] == 'function') {
@@ -11,15 +12,22 @@ IrcServerController.prototype.update = function(proxy, event) {
     }
 };
 IrcServerController.prototype.onSetup = function(event) {
+    var doLogin = false;
     if (!this.isInitialized) {
-        this.irc = new IrcChatGroup(new IrcChatList());
+        this.irc = new IrcChatGroup(new IrcChatList(), event.config.username);
         this.proxy.addObserver(new IrcChatEventProxy(this.irc));
         this.isInitialized = true;
+        this.config = event.config;
+        doLogin = event.config.username;
     }
-    this.proxy.sendUser({"method":"Setup","irc":this.irc.hashify()});
+    this.proxy.sendUser({"method":"Setup","irc":this.irc.hashify(),"config":this.config});
+    if (doLogin) {
+        this.proxy.sendAll({'method':'Login','username':event.config.username,'password':'', 'remember':false});
+    }
 };
 IrcServerController.prototype.onLogout = function(event) {
     this.handler.quit("Logging out");
+    delete this.handler;
 };
 IrcServerController.prototype.onDelUser = function(event) {
     if (this.handler) {
@@ -59,8 +67,8 @@ IrcServerController.prototype.onLogin = function(event) {
     var password = event.password;
     var nickserv = new IrcNickserv("NickServ", handler);
     var self = this;
-    var ip = event['_infos'].ip;
-    var host = event['_infos'].ip;
+    var ip = this.ip;
+     var host = this.ip;
 
     handler.registerEventHandler(new EventToProxy(this.proxy));
 
@@ -90,8 +98,11 @@ IrcServerController.prototype.onLogin = function(event) {
             'Mode' : function(e, d, s) {
                 if (e == 'onReceiveMODE') {
                     handler.mode(username, "+i");
-                    nickserv.probeUsername(username);
-                    return 'Nick';
+                    //nickserv.probeUsername(username);
+                    //return 'Nick';
+                    s.proxy.sendAll({'method':'LoginSuccess', 'username':username});
+                    handler.join('#thehelper');
+                    return 'JoinedChannel';
                 } else if (e=='onReceive433') {
                     s.proxy.sendAll({'method':'LoginFail'});
                     handler.quit("Failed nickserv");

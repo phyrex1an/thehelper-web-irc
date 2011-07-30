@@ -1,7 +1,9 @@
-var IrcChatGroupView = function(chat, proxy, root) {
+var IrcChatGroupView = function(chat, proxy, root, config) {
     this.proxy = proxy;
     this.chat = chat;
+    this.config = config;
     this.chatList = new IrcChatListView(chat.chatList, proxy);
+    this.html = this.chatList.html;
     this.root = root;
     chat.addObserver(this);
 
@@ -10,10 +12,13 @@ var IrcChatGroupView = function(chat, proxy, root) {
         e.preventDefault();
         self.doLogin();
     });
-    this.root.append(this.chatList.html)
-        .append('<div class="menu"><h2>Actions</h2><ul class="options"><li class="join">#thehelper</li><li class="logout">Logout</li></ul></div>');
     $('.options .join', this.root).click(function() {
         self.proxy.joinChannel($(this).html());
+    });
+    $('.options .disable', this.root).click(function() {
+        self.proxy.logout();
+        self.proxy.disable();
+        $.cookie("chatdisable", "true", {path:'/', expires:10000 /*days*/});
     });
     $('.options .logout', this.root).click(function() {
         self.proxy.logout();
@@ -33,12 +38,12 @@ var IrcChatGroupView = function(chat, proxy, root) {
     }
 };
 IrcChatGroupView.prototype.displayForm = function() {
-    $('div.menu', this.root).hide();
+    //$('div.menu', this.root).hide();
     this.chatList.html.hide();
     $('form.login', this.root).show();
 };
 IrcChatGroupView.prototype.hideForm = function() {
-    $('div.menu', this.root).show();
+    //$('div.menu', this.root).show();
     this.chatList.html.show();
     $('form.login', this.root).hide();
 };
@@ -66,6 +71,8 @@ IrcChatGroupView.prototype.update = function(c, e) {
         this.displayForm();
         this.enable();
         $.cookie("chattoken", null, {'path':'/'});
+    } else if (e == 'Disable') {
+        this.root.remove();
     } else if (e.token) {
         $.cookie("chattoken", e.token, {'expires':30,'path':'/'});
     }

@@ -38,10 +38,10 @@ Observable.prototype.notifyObservers = function(e) {
 
 // Topmost container, deals with connection info such as current
 // username, password, nickserv status etc
-IrcChatGroup = function(chatList) {
+IrcChatGroup = function(chatList, username, password) {
     this.chatList = chatList;
-    this.password = "";
-    this.username = "";
+    this.password = password; // TODO: Encrypt
+    this.username = username;
     this.isLoggingIn = false;
     this.isLoggedIn = false;
     this.observers = [];
@@ -55,6 +55,14 @@ IrcChatGroup.unhashify = function(hash) {
     n.isLoggingIn = hash.isLoggingIn;
     n.isLoggedIn = hash.isLoggedIn;
     return n;
+};
+IrcChatGroup.prototype.setUsername = function(username) {
+    this.username = username;
+    this.notifyObservers('HasUsername');
+};
+IrcChatGroup.prototype.setPassword = function(password) {
+    this.password = password;
+    this.notifyObservers('HasPassword');
 };
 IrcChatGroup.prototype.login = function(username, password) {
     this.isLoggedIn = false;
@@ -83,6 +91,9 @@ IrcChatGroup.prototype.logout = function() {
     this.isLoggedIn = false;
     this.chatList.empty();
     this.notifyObservers('Logout');
+};
+IrcChatGroup.prototype.disable = function() {
+    this.notifyObservers('Disable');
 };
 IrcChatGroup.prototype.maximizeChat = function(channelName) {
     this.chatList.maximize(channelName);
