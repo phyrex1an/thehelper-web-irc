@@ -11,25 +11,25 @@ IRCHandler = function(nickservName, socket) {
         try {
             self.sendEvent({'identifier':'Open'});
         } catch (e) {
-            sys.log(e);
+            sys.log("Error sending open event: " + e);
         }
     });
     socket.on('close', function() {
         try {
             self.sendEvent({'identifier':'Close'});
         } catch (e) {
-            sys.log(e);
+            sys.log("Error sending close event: " + e);
         }
     });
     socket.on('data', function(data) {
         try {
             self.decoder.receive(data);
         } catch (e) {
-            sys.log(e);
+            sys.log("Error decoding data: " + e);
         }
     });
     socket.on('error', function(error) {
-        sys.log(error);
+        sys.log("Error: " + error);
     });
 };
 IRCHandler.prototype = new Object();
@@ -65,7 +65,7 @@ IRCHandler.prototype.close = function() {
 };
 
 IRCHandler.prototype.sendRaw = function(raw) {
-    sys.log(raw);
+    sys.log("Sending data: " + raw);
     this.connection.write(raw + this.ENDL);
 };
 
@@ -190,7 +190,7 @@ IRCDecoder.prototype.parseLines = function() {
     for (var i = 0, l = commands.length - 1; i < l; ++i) {
         var line = commands[i];
         if (line.length > 0) {
-            sys.log(line);
+            sys.log("Received line: " + line);
             this.parseRaw(line);
         }
     }

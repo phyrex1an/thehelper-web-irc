@@ -24,7 +24,7 @@ io.sockets.on('connection', function(socket) {
             data.chat = new IrcServerProxy(cookie);
             data.chat.addObserver(new IrcServerController(data.chat, data.ip));
             on_destroy_session(cookie, function() {
-                // TODO: Debug log
+                sys.log("Debug. Run destroy function for cookie: " + cookie);
                 data.chat.receiveServer({'method':'DelUser'}, null);
             });
         }
@@ -39,7 +39,7 @@ io.sockets.on('connection', function(socket) {
 
                 proxy.receive(message, socket);
             } catch (e) {
-                sys.log(e);
+                sys.log("Error receiving event: " + e);
             }
         };
         socket.on('server message', messageReceiver);

@@ -17,7 +17,7 @@ on_session = function(client, f) {
     // One could as well let the client decide on the cookie. 
     // TODO: Is it a problem that the client can create arbitrary cookies? Filling up memory easy perhaps?
     client.emit('setup session', cookie, function(picked_cookie) {
-        // TODO: Debug log
+        sys.log("Debug. Connecting client to session. Cookie: " + picked_cookie);
         if (!sessions[picked_cookie]) {
             sessions[picked_cookie] = {clients:[], destroy_timer:null, mayday_timer:null,data:{}};
         }
@@ -26,9 +26,9 @@ on_session = function(client, f) {
         reset_mayday_timer(picked_cookie);
         stop_destroy_timer(picked_cookie);
         client.on('disconnect', function() {
-            // TODO: Debug log
+            sys.log("Debug. Disconnect client from session. Cookie: " + picked_cookie);
             if (!sessions[picked_cookie]) {
-                // TODO: Alert log (client has maydayed)
+                sys.log("Alert. Client tried to close normally after a mayday. Cookie: " + picked_cookie);
                 return;
             }
             var length = current_session.clients.length;
@@ -37,8 +37,8 @@ on_session = function(client, f) {
                     current_session.clients.splice(i,1);
                 }
             }
-            if (length != current_session.clients.length - 1) {
-                // TODO: Error log
+            if (length - 1 != current_session.clients.length) {
+                sys.log("Error. Deleted too few or too many clients from session. Cookie: " + picked_cookie);
             }
             if (length-1==0) {
                 start_destroy_timer(picked_cookie);
@@ -61,12 +61,12 @@ session_get_clients = function(cookie) {
 }
 
 reset_mayday_timer = function(cookie) {
-    var mayday_time = 1000 * 60 * 5; // 5 minutes 
+    var mayday_time = 1000 * 60 * 15; // 15 minutes 
     if (sessions[cookie].mayday_timer) {
         timers.clearTimeout(sessions[cookie].mayday_timer);
     }
     sessions[cookie].mayday_timer = timers.setTimeout(function() {
-        // TODO: Error log
+        sys.log("Error. Mayday timer fired for session. Cookie: " + cookie);
         delete_session(cookie);
     }, mayday_time);
 };
@@ -80,9 +80,9 @@ stop_destroy_timer = function(cookie) {
 start_destroy_timer = function(cookie) {
     var destroy_time = 1000 * 60 * 1; // 1 minut 
     sessions[cookie].destroy_timer = timers.setTimeout(function() {
-        // TODO: Debug log
+        sys.log("Debug. Destroy timer fired for session. Cookie: " + cookie);
         if (sessions[cookie].clients.length != 0) {
-            // TODO: Error log (but better destroy anyway?)
+            sys.log("Error. Destroy timer fired when session not empty. Cookie: " + cookie); // better destroy anyway?
         }
         delete_session(cookie);
     }, destroy_time);
@@ -97,9 +97,9 @@ delete_session = function(cookie) {
         try {
             sessions[cookie].on_destroy();
         } catch (e) {
-            // TODO: Alert log
+            sys.log("Alert. Destroy function threw exception. Cookie: " + cookie + " Ex: " + e);
         }
     }
-    // TODO: Debug log
+    sys.log("Debug. Destroyed session. Cookie: " + cookie);
     delete sessions[cookie];
 };
