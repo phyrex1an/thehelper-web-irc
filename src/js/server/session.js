@@ -22,6 +22,13 @@ on_session = function(client, f) {
             sessions[picked_cookie] = {clients:[], destroy_timer:null, mayday_timer:null,data:{}};
         }
         var current_session = sessions[picked_cookie];
+        var length = current_session.clients.length;
+        for (var i = 0; i < length; i++) {
+            if (current_session.clients[i] == client) {
+                sys.log("Notice. Client tried to connect to a session it's already in. Cookie: " + picked_cookie);
+                return;
+            }
+        }
         current_session.clients.push(client);
         reset_mayday_timer(picked_cookie);
         stop_destroy_timer(picked_cookie);
@@ -38,7 +45,7 @@ on_session = function(client, f) {
                 }
             }
             if (length - 1 != current_session.clients.length) {
-                sys.log("Error. Deleted too few or too many clients from session. Cookie: " + picked_cookie);
+                sys.log("Error. Deleted too few or too many clients from session. Cookie: " + picked_cookie + " Deleted: " + (length - current_session.clients.length) );
             }
             if (length-1==0) {
                 start_destroy_timer(picked_cookie);
